@@ -5,8 +5,12 @@
  *	mode for the makedefs / drg code.
  */
 /* NetHack may be freely redistributed.  See license for details. */
+/* Modified by cmarq@cube.net for graphical NEXTSTEP version (8/28/94) */
+
+
 
 #define NEED_VARARGS
+#define PANIC_C
 #include	"config.h"
 
 #ifdef MSDOS

@@ -1,6 +1,8 @@
 /*	SCCS Id: @(#)extern.h	3.0	89/11/22
 /* 	Copyright (c)   Steve Creps, 1988. 		 */
 /* NetHack may be freely redistributed.  See license for details. */
+/* Changed for graphical version of NetHack on NextStep */
+/*  by Christoph Marquardt 9/4/93 */
 
 #ifndef EXTERN_H
 #define EXTERN_H
@@ -776,6 +778,16 @@ E void FDECL(m_useup, (struct monst *,struct obj *));
 #ifdef MUSIC
 E int FDECL(do_play_instrument, (struct obj *));
 #endif /* MUSIC /**/
+
+/* ### next.m ### */
+
+E void FDECL(start_app, (int, char *[]));
+E void FDECL(exit_main, (int));
+E void FDECL(WindowPutstr, (const char *));
+E void FDECL(WindowCPutchar, (char, char));
+E void FDECL(WindowCursor, (char));
+E void FDECL(WindowWindow, (char));
+E void FDECL(WindowSound, (const char *));
 
 /* ### o_init.c ### */
 

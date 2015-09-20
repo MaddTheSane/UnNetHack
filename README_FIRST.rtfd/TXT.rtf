@@ -1,0 +1,93 @@
+{\rtf0\ansi{\fonttbl\f0\fswiss Helvetica;\f1\fnil Times-Roman;\f2\fmodern Courier;}
+\paperw11680
+\paperh12580
+\margl120
+\margr120
+{\colortbl;\red0\green8\blue98;}
+\pard\tx1920\tx3840\tx5760\tx7680\tx9600\tx11520\tx13440\tx15360\tx17280\tx19200\f0\b0\i0\ulnone\fs16\fc0\cf0 Source/Readme.rtf   (Port Version 0.9û  9/1/94 cmarq)
+\f1\fs96 \
+
+\qc 	
+\gray61\fc1\cf1 NetHack.app
+\gray0\fc0\cf0 \
+
+\fs28 A graphical 
+\f0\b\fs24 NEXTSTEP
+\f1\b0\fs28  front end for nethack 3.0i\
+
+\b\ql NetHack.app Source
+\f0\b0\fs24 \
+\
+This directory contains the source needed to compile NetHack.app on NEXTSTEP.\
+See the file Files.next for a complete list of all the files which should be in this directory.\
+\
+
+\i I only included the files that are needed for the NEXTSTEP front end.
+\i0  I didn't include all the other files that are in the official distribution of nethack 3.0i (see the Files.orig file for a complete list).\
+\
+
+\b How to make NetHack.app:
+\b0 \
+\
+Well, making NetHack.app can be quite challenging :-).\
+\
+First you have to go into a shell. 
+\f2 cd
+\f0  to the src directory and type 
+\f2 make
+\f0 . (The src directory has to be made first, before ProjectBuilder tries to make it. This is somewhat ugly, I know, but I didn't find any way to let ProjectBuilder 
+\i only link
+\i0  some files to the final executable, without trying to make them...)\
+\
+Next you simply double click the PB.project file in the next directory and click on the Build button.\
+Now ProjectBuilder should compile the app and finally link all files (including src/*.o).\
+\
+If all worked you can start the app now.\
+\
+
+\b BUGS:
+\b0 \
+These are the bugs I know about:\
+- annoying symbol conversion when in rogue level\
+- mail delivery / shell  won't work\
+- some ugly special charcaters here and there\
+- buggy backspace editing\
+(- 
+\i NetHack.app may crash if there is no defaults entry
+\i0  and a sound will be played or someone tries to open the Preferences panel. (Well I do an NXRegisterDefaults but somehow ...)\
+You can solve this problem by typing 
+\f2 dwrite NetHack UseSound YES
+\f0  in a shell.)\
+This bug should be obsolete in this version.\
+- ugly building process (actually it's quite a hack ;-))\
+\
+
+\b Structure:
+\b0 \
+There are to classes in the application:\
+NethackApp	An NXApp subclass that handles the cthreads and other tasks\
+NethackView	The main view, where all the drawing is done\
+\
+The 'original' nethack game runs in a seperate thread and communicates via Window*() functions with the application thread. Those function are implemented in next.m and use Mach messages to notify the NethackApp object.\
+\
+I spent most time to correctly implement thread communication and 'simulating' the terminal.\
+\
+Sounds are played via the WindowSound(char *Soundname) function. I included sounds for some events in nextsound.c (which substitutes sounds.c). There must exist the files Soundname.snd in the NHSounds bundle in order to be played.\
+\
+All changes to the original source should be documented in the next/PATCHES file.\
+\
+Finally, as always:\
+There's absolutely no warranty for this software!\
+See the Nethack license (in the Help panel) for further information.\
+\
+If you have comments etc. you can mail me (but don't expect an answer too soon as I'm quite busy with school etc.):\
+	
+\f2 cmarq@cube.net
+\f0   
+\fs20 (NO NeXTMail, please)
+\fs24 \
+\
+Have fun,\
+ Christoph Marquardt\
+ 
+}

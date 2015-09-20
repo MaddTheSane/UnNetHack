@@ -1,6 +1,8 @@
 /*	SCCS Id: @(#)pri.c	3.0	89/11/15
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /* NetHack may be freely redistributed.  See license for details. */
+/* Changed for graphical version of NetHack on NextStep */
+/*  by Christoph Marquardt 9/4/93 */
 
 #define MONATTK_H	/* comment line for pre-compiled headers */
 /* block some unused #defines to avoid overloading some cpp's */
@@ -1306,7 +1308,7 @@ uchar let, typ;
 	boolean colorit;
 #endif
 	if (let == ' '
-#if !defined(MSDOS) && !defined(MACOS)
+#if !defined(MSDOS) && !defined(MACOS) && !defined(NEXT)
 	    || !flags.standout
 #endif
 	    ) {
@@ -1394,7 +1396,11 @@ uchar let, typ;
 		}
 	}
 	if (typ && colorit)
+#ifndef NEXT
 		xputs(hilites[Hallucination ? rn2(MAXCOLORS) : typ]);
+#else
+		WindowCPutchar(let, Hallucination ? rn2(MAXCOLORS) : typ);
+#endif /* NEXT */
 	else
 #endif
 #ifdef REINCARNATION
@@ -1402,10 +1408,18 @@ uchar let, typ;
 #else
 	if (typ == AT_MON) revbeg();
 #endif
+
+#ifndef NEXT
 	g_putch(let);
+#else
+	if (!typ || !colorit)
+		g_putch(let);
+#endif /* NEXT */
 
 #ifdef TEXTCOLOR
+#ifndef NEXT
 	if (typ && colorit) xputs(HE); else
+#endif /* NEXT */
 #endif
 #ifdef REINCARNATION
 	if (typ == AT_MON && dlevel != rogue_level) m_end();

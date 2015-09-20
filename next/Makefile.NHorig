@@ -1,0 +1,63 @@
+#	Hack Makefile.
+#	Next version	8/24/93
+
+# newer makes predefine $(MAKE) to 'make' and do smarter processing of
+# recursive make calls if $(MAKE) is used
+# these makes allow $(MAKE) to be overridden by the environment if someone
+# wants to (or has to) use something other than the standard make, so we do
+# not want to unconditionally set $(MAKE) here
+#
+# unfortunately, some older makes do not predefine $(MAKE); if you have one of
+# these, uncomment the following line
+# (you will know that you have one if you get complaints about unable to
+# execute things like 'data' and 'rumors')
+# MAKE = make
+
+# make NetHack
+GAME     = nethack
+GAMEUID  = games
+GAMEGRP  = bin
+
+# GAMEDIR also appears in config.h as "HACKDIR".
+#
+# note that 'make install' believes in creating a nice tidy GAMEDIR for
+# installation, free of debris from previous NetHack versions --
+# therefore there should not be anything in GAMEDIR that you want to keep
+# (if there is, you'll have to do the installation by hand or modify the
+# instructions)
+GAMEDIR  = $(PRODUCT_ROOT)
+SHELLDIR = /usr/games
+MANDIR   = /usr/man/man6
+MANEXT   = 6
+
+# manual installation for most BSD-style systems
+GAMEMANCREATE = cp auxil/nethack.6
+LEVMANCREATE = cp auxil/lev_comp.6
+# manual installation for most SYSV-style systems
+# GAMEMANCREATE = nroff -man auxil/nethack.6 >
+# LEVMANCREATE = nroff -man auxil/lev_comp.6 >
+
+AUXHELP = help hh cmdhelp history opthelp oracles
+VARAUX = data rumors
+SPEC_LEVS = endgame castle tower1 tower2 tower3
+AUX = $(AUXHELP) $(VARAUX) $(SPEC_LEVS) license
+
+$(GAME):
+	( cd ../src ; $(MAKE) )
+
+nethackorig:	$(GAME) Guidebook data rumors spec_levs
+	@echo "Done."
+
+Guidebook:
+	( cd ../auxil ; $(MAKE) Guidebook )
+
+data:
+	( cd ../auxil ; $(MAKE) data )
+
+rumors:
+	( cd ../auxil ; $(MAKE) rumors )
+
+spec_levs:
+	( cd ../src ; $(MAKE) lev_comp )
+	( cd ../auxil ; $(MAKE) spec_levs )
+	

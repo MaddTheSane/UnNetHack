@@ -4,11 +4,15 @@
 /*	SCCS Id: @(#)lev_comp.c	3.0	90/01/03
 /*	Copyright (c) 1989 by Jean-Christophe Collet */
 /* NetHack may be freely redistributed.  See license for details. */
+/* Changed for graphical version of NetHack on NextStep */
+/*  by Christoph Marquardt 9/4/93 */
 
 /*
  * This file contains the Level Compiler code
  * It may handle special mazes & special room-levels
  */
+
+#define LEV_COMP_C	/* added by c.m. for NEXT */
 
 /* block some unused #defines to avoid overloading some cpp's */
 #define MONDATA_H	/* comment line for pre-compiled headers */
@@ -166,7 +170,7 @@ extern int fatal_error;
 extern char* fname;
 
 
-# line 168 "lev_comp.y"
+# line 172 "lev_comp.y"
 typedef union 
 {
 	int	i;
@@ -217,7 +221,7 @@ extern short yyerrflag;
 YYSTYPE yylval, yyval;
 # define YYERRCODE 256
 
-# line 653 "lev_comp.y"
+# line 657 "lev_comp.y"
 
 
 /* 
@@ -793,11 +797,11 @@ short yydef[]={
   79,   0,  78,   0,  77,   0,   0,   0,   0,  85,
   41,  42,  45,  49,  63,  64,   0,  50,  75,  76,
    0,   0,  80,   0,   0,  86 };
+# line 1 "/usr/lib/yaccpar"
 #ifndef lint
 static char yaccpar_sccsid[] = "@(#)yaccpar	4.1	(Berkeley)	2/11/83";
 #endif not lint
 
-#
 # define YYFLAG -1000
 # define YYERROR goto yyerrlab
 # define YYACCEPT return(0)
@@ -834,7 +838,7 @@ yyparse() {
 #ifdef YYDEBUG
 	if( yydebug  ) printf( "state %d, char 0%o\n", yystate, yychar );
 #endif
-		if( ++yyps> &yys[YYMAXDEPTH] ) { yyerror( "yacc stack overflow" ); return(1); }
+		if( ++yyps>= &yys[YYMAXDEPTH] ) { yyerror( "yacc stack overflow" ); return(1); }
 		*yyps = yystate;
 		++yypv;
 		*yypv = yyval;
@@ -943,7 +947,7 @@ yyparse() {
 		switch(yym){
 			
 case 6:
-# line 200 "lev_comp.y"
+# line 204 "lev_comp.y"
 {
 			  int fout, i;
 
@@ -975,17 +979,17 @@ case 6:
 			  }
 		  } break;
 case 7:
-# line 232 "lev_comp.y"
+# line 236 "lev_comp.y"
 {
 			  yyval.map = yypvt[-0].map;
 		  } break;
 case 10:
-# line 240 "lev_comp.y"
+# line 244 "lev_comp.y"
 {
 			store_part();
 		  } break;
 case 11:
-# line 245 "lev_comp.y"
+# line 249 "lev_comp.y"
 {
 			tmppart[npart] = (mazepart *) alloc(sizeof(mazepart));
 			tmppart[npart]->halign = yypvt[-1].i % 10;
@@ -996,12 +1000,12 @@ case 11:
 			scan_map(yypvt[-0].map);
 		  } break;
 case 12:
-# line 256 "lev_comp.y"
+# line 260 "lev_comp.y"
 {
 			  yyval.i = yypvt[-2].i + ( yypvt[-0].i * 10 );
 		  } break;
 case 19:
-# line 270 "lev_comp.y"
+# line 274 "lev_comp.y"
 {
 			  if (tmppart[npart]->nrobjects)
 			      yyerror("Object registers already initialized!");
@@ -1012,7 +1016,7 @@ case 19:
 			  }
 		  } break;
 case 20:
-# line 280 "lev_comp.y"
+# line 284 "lev_comp.y"
 {
 			  if (tmppart[npart]->nloc)
 			      yyerror("Location registers already initialized!");
@@ -1028,7 +1032,7 @@ case 20:
 			  }
 		  } break;
 case 21:
-# line 295 "lev_comp.y"
+# line 299 "lev_comp.y"
 {
 			  if (tmppart[npart]->nrmonst)
 			      yyerror("Monster registers already initialized!");
@@ -1039,7 +1043,7 @@ case 21:
 			  }
 		  } break;
 case 22:
-# line 306 "lev_comp.y"
+# line 310 "lev_comp.y"
 {
 			  if (n_olist < MAX_REGISTERS)
 			      olist[n_olist++] = yypvt[-0].i;
@@ -1047,7 +1051,7 @@ case 22:
 			      yyerror("Object list too long!");
 		  } break;
 case 23:
-# line 313 "lev_comp.y"
+# line 317 "lev_comp.y"
 {
 			  if (n_olist < MAX_REGISTERS)
 			      olist[n_olist++] = yypvt[-2].i;
@@ -1055,7 +1059,7 @@ case 23:
 			      yyerror("Object list too long!");
 		  } break;
 case 24:
-# line 321 "lev_comp.y"
+# line 325 "lev_comp.y"
 {
 			  if (n_mlist < MAX_REGISTERS)
 			      mlist[n_mlist++] = yypvt[-0].i;
@@ -1063,7 +1067,7 @@ case 24:
 			      yyerror("Monster list too long!");
 		  } break;
 case 25:
-# line 328 "lev_comp.y"
+# line 332 "lev_comp.y"
 {
 			  if (n_mlist < MAX_REGISTERS)
 			      mlist[n_mlist++] = yypvt[-2].i;
@@ -1071,7 +1075,7 @@ case 25:
 			      yyerror("Monster list too long!");
 		  } break;
 case 26:
-# line 336 "lev_comp.y"
+# line 340 "lev_comp.y"
 {
 			  if (n_plist < MAX_REGISTERS)
 			      plist[n_plist++] = current_coord;
@@ -1079,7 +1083,7 @@ case 26:
 			      yyerror("Location list too long!");
 		  } break;
 case 27:
-# line 343 "lev_comp.y"
+# line 347 "lev_comp.y"
 {
 			  if (n_plist < MAX_REGISTERS)
 			      plist[n_plist++] = current_coord;
@@ -1087,7 +1091,7 @@ case 27:
 			      yyerror("Location list too long!");
 		  } break;
 case 41:
-# line 365 "lev_comp.y"
+# line 369 "lev_comp.y"
 {
 			  int token;
 
@@ -1108,7 +1112,7 @@ case 41:
 			  nmons++;
 		  } break;
 case 42:
-# line 386 "lev_comp.y"
+# line 390 "lev_comp.y"
 {
 			  int token;
 
@@ -1129,7 +1133,7 @@ case 42:
 			  nobj++;
 		  } break;
 case 43:
-# line 407 "lev_comp.y"
+# line 411 "lev_comp.y"
 {
 			tmpdoor[ndoor] = (door *) alloc(sizeof(door));
 			tmpdoor[ndoor]->x = current_coord.x;
@@ -1138,7 +1142,7 @@ case 43:
 			ndoor++;
 		  } break;
 case 44:
-# line 416 "lev_comp.y"
+# line 420 "lev_comp.y"
 {
 			tmptrap[ntrap] = (trap *) alloc(sizeof(trap));
 			tmptrap[ntrap]->x = current_coord.x;
@@ -1147,7 +1151,7 @@ case 44:
 			ntrap++;
 		  } break;
 case 45:
-# line 425 "lev_comp.y"
+# line 429 "lev_comp.y"
 {
 			tmpdb[ndb] = (drawbridge *) alloc(sizeof(drawbridge));
 			tmpdb[ndb]->x = current_coord.x;
@@ -1162,7 +1166,7 @@ case 45:
 			ndb++;
 		   } break;
 case 46:
-# line 440 "lev_comp.y"
+# line 444 "lev_comp.y"
 {
 			tmpwalk[nwalk] = (walk *) alloc(sizeof(walk));
 			tmpwalk[nwalk]->x = current_coord.x;
@@ -1171,7 +1175,7 @@ case 46:
 			nwalk++;
 		  } break;
 case 47:
-# line 449 "lev_comp.y"
+# line 453 "lev_comp.y"
 {
 			tmplad[nlad] = (lad *) alloc(sizeof(lad));
 			tmplad[nlad]->x = current_coord.x;
@@ -1180,7 +1184,7 @@ case 47:
 			nlad++;
 		  } break;
 case 48:
-# line 458 "lev_comp.y"
+# line 462 "lev_comp.y"
 {
 			tmpdig[ndig] = (digpos *) alloc(sizeof(digpos));
 			tmpdig[ndig]->x1 = current_region.x1;
@@ -1190,7 +1194,7 @@ case 48:
 			ndig++;
 		  } break;
 case 49:
-# line 468 "lev_comp.y"
+# line 472 "lev_comp.y"
 {
 			tmpreg[nreg] = (region *) alloc(sizeof(region));
 			tmpreg[nreg]->x1 = current_region.x1;
@@ -1202,7 +1206,7 @@ case 49:
 			nreg++;
 		  } break;
 case 50:
-# line 480 "lev_comp.y"
+# line 484 "lev_comp.y"
 {
 #ifndef ALTARS
 			yywarning("Altars are not allowed in this version!  Ignoring...");
@@ -1216,27 +1220,27 @@ case 50:
 #endif /* ALTARS */
 		  } break;
 case 52:
-# line 495 "lev_comp.y"
+# line 499 "lev_comp.y"
 {
 			  yyval.i = - MAX_REGISTERS - 1;
 		  } break;
 case 55:
-# line 502 "lev_comp.y"
+# line 506 "lev_comp.y"
 {
 			  yyval.i = - MAX_REGISTERS - 1;
 		  } break;
 case 58:
-# line 509 "lev_comp.y"
+# line 513 "lev_comp.y"
 {
 			  yyval.map = (char *) 0;
 		  } break;
 case 60:
-# line 515 "lev_comp.y"
+# line 519 "lev_comp.y"
 {
 			  yyval.map = (char *) 0;
 		  } break;
 case 61:
-# line 520 "lev_comp.y"
+# line 524 "lev_comp.y"
 {
 			int token = get_trap_type(yypvt[-0].map);
 			if (token == ERR)
@@ -1244,7 +1248,7 @@ case 61:
 			yyval.i = token;
 		  } break;
 case 63:
-# line 529 "lev_comp.y"
+# line 533 "lev_comp.y"
 {
 			int token = get_room_type(yypvt[-0].map);
 			if (token == ERR) {
@@ -1254,17 +1258,17 @@ case 63:
 				yyval.i = token;
 		  } break;
 case 67:
-# line 542 "lev_comp.y"
+# line 546 "lev_comp.y"
 {
 			  current_coord.x = current_coord.y = -MAX_REGISTERS-1;
 		  } break;
 case 74:
-# line 555 "lev_comp.y"
+# line 559 "lev_comp.y"
 {
 			  yyval.i = - MAX_REGISTERS - 1;
 		  } break;
 case 77:
-# line 563 "lev_comp.y"
+# line 567 "lev_comp.y"
 {
 			if ( yypvt[-1].i >= MAX_REGISTERS ) {
 				yyerror("Register Index overflow!");
@@ -1273,7 +1277,7 @@ case 77:
 			}
 		  } break;
 case 78:
-# line 572 "lev_comp.y"
+# line 576 "lev_comp.y"
 {
 			if ( yypvt[-1].i >= MAX_REGISTERS ) {
 				yyerror("Register Index overflow!");
@@ -1282,7 +1286,7 @@ case 78:
 			}
 		  } break;
 case 79:
-# line 581 "lev_comp.y"
+# line 585 "lev_comp.y"
 {
 			if ( yypvt[-1].i >= MAX_REGISTERS ) {
 				yyerror("Register Index overflow!");
@@ -1291,7 +1295,7 @@ case 79:
 			}
 		  } break;
 case 80:
-# line 590 "lev_comp.y"
+# line 594 "lev_comp.y"
 {
 			if ( yypvt[-1].i >= 3 ) {
 				yyerror("Register Index overflow!");
@@ -1300,7 +1304,7 @@ case 80:
 			}
 		  } break;
 case 82:
-# line 601 "lev_comp.y"
+# line 605 "lev_comp.y"
 {
 			if (check_monster_char((char) yypvt[-0].i))
 				yyval.i = yypvt[-0].i ;
@@ -1310,7 +1314,7 @@ case 82:
 			}
 		  } break;
 case 83:
-# line 611 "lev_comp.y"
+# line 615 "lev_comp.y"
 {
 			char c;
 
@@ -1329,7 +1333,7 @@ case 83:
 			}
 		  } break;
 case 85:
-# line 631 "lev_comp.y"
+# line 635 "lev_comp.y"
 {
 			if (yypvt[-3].i < 0 || yypvt[-3].i > max_x_map ||
 			    yypvt[-1].i < 0 || yypvt[-1].i > max_y_map)
@@ -1338,7 +1342,7 @@ case 85:
 			current_coord.y = yypvt[-1].i;
 		  } break;
 case 86:
-# line 640 "lev_comp.y"
+# line 644 "lev_comp.y"
 {
 			if (yypvt[-7].i < 0 || yypvt[-7].i > max_x_map ||
 			    yypvt[-5].i < 0 || yypvt[-5].i > max_y_map ||
@@ -1349,7 +1353,9 @@ case 86:
 			current_region.y1 = yypvt[-5].i;
 			current_region.x2 = yypvt[-3].i;
 			current_region.y2 = yypvt[-1].i;
-		  } break; 
+		  } break;
+# line 148 "/usr/lib/yaccpar"
+
 		}
 		goto yystack;  /* stack new state and value */
 

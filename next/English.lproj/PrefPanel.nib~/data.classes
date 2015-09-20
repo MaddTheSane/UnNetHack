@@ -1,0 +1,24 @@
+FirstResponder = {
+    ACTIONS = {
+    };
+    SUPERCLASS = Object;
+};
+NethackApp = {
+    ACTIONS = {
+	commands:;
+	handleCommand:;
+	changePrefs:;
+	info:;
+	quitGame:;
+	prefs:;
+    };
+    OUTLETS = {
+	prefPanel;
+	useSound;
+	nethackView;
+	commPanel;
+	infoPanel;
+	myFont;
+    };
+    SUPERCLASS = Application;
+};

@@ -1,6 +1,8 @@
 /*	SCCS Id: @(#)topten.c	3.0	89/12/31
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /* NetHack may be freely redistributed.  See license for details. */
+/* Modified by cmarq@cube.net for graphical NEXTSTEP version (added notice: 8/26/94) */
+
 
 #define MONATTK_H	/* comment line for pre-compiled headers */
 #define MONFLAG_H	/* comment line for pre-compiled headers */
@@ -409,7 +411,14 @@ outheader() {
 	bp = eos(linebuf);
 	while(bp < linebuf + COLNO - 9) *bp++ = ' ';
 	Strcpy(bp, "Hp [max]");
+#ifdef NEXT
+	(void) printf("%s", linebuf);
+#else
 	(void) puts(linebuf);
+#endif /* NEXT */
+#ifdef NEXT
+	printf("\n");
+#endif
 #ifdef MACOS
 	putchar('\n');
 #endif
@@ -509,7 +518,11 @@ register int rank, so;
 	}
 
 	if(so == 0) {
+#ifdef NEXT
+	(void) printf("%s", linebuf);
+#else
 	  (void) puts(linebuf);
+#endif /* NEXT */
 	  if (second_line)
 		(void) Printf("                %s\n", linebuf2);
 	} else if(so > 0) {
@@ -518,12 +531,20 @@ register int rank, so;
 	  while(bp < linebuf + so) *bp++ = ' ';
 	  *bp = 0;
 	  standoutbeg();
+#ifdef NEXT
+	(void) printf("%s", linebuf);
+#else
 	  (void) puts(linebuf);
+#endif /* NEXT */
 	  if(second_line)
 		(void) Printf("                %s", linebuf2);
 	  standoutend();
 	  if(second_line)
+#ifdef NEXT
+		(void) printf("\n");
+#else
 		(void) putchar('\n');
+#endif /* NEXT */
 	}
 	return(strlen(linebuf)+strlen(linebuf2));
 }

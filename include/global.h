@@ -1,6 +1,8 @@
 /*	SCCS Id: @(#)global.h	3.0	89/11/08
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /* NetHack may be freely redistributed.  See license for details. */
+/* Changed for graphical version of NetHack on NextStep */
+/*  by Christoph Marquardt 9/4/93 */
 
 #ifndef GLOBAL_H
 #define	GLOBAL_H
@@ -151,6 +153,9 @@ typedef	xchar	boolean;		/* 0 or 1 */
 # include "macconf.h"
 #endif
 
+#if defined(NEXT) && !defined(NEXTCONF_H)
+# include "nextconf.h"
+#endif
 
 /*
  * Configurable internal parameters.

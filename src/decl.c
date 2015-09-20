@@ -307,6 +307,7 @@ SPBOOK_SYM,
 RING_SYM, AMULET_SYM, FOOD_SYM, TOOL_SYM, GEM_SYM, GOLD_SYM,
 ROCK_SYM, BALL_SYM, CHAIN_SYM, 0 };
 
+
 const char *monexplain[] = {
 "human", "ghost", "ant or other insect", "blob", "cockatrice",
 "dog or other canine", "eye or sphere", "feline", "gremlin", "humanoid",

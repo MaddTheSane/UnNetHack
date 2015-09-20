@@ -74,7 +74,7 @@ moveloop()
 			MaxMem(&space);
 		}
 	}
-#endif
+#endif /* MACOS */
 #ifdef CLIPPING
 		cliparound(u.ux, u.uy);
 #endif

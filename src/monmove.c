@@ -1,6 +1,8 @@
 /*	SCCS Id: @(#)monmove.c	3.0	89/11/21
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /* NetHack may be freely redistributed.  See license for details. */
+/* Modified by cmarq@cube.net for graphical NEXTSTEP version (added notice: 8/26/94) */
+
 
 #ifndef LINT
 # ifndef __STDC__
@@ -684,7 +686,14 @@ postmov:
 			    if (canseeit)
 			      You("see a door being unlocked and opened.");
 			    else if (flags.soundok)
+#ifdef NEXT
+				{
+					You("hear a door being unlocked and opened.");
+					WindowSound("Door");
+				}
+#else
 			       You("hear a door being unlocked and opened.");
+#endif /* NEXT */
 		        }
 		        here->doormask = D_ISOPEN;
 			mnewsym(mtmp->mx, mtmp->my);
@@ -701,7 +710,14 @@ postmov:
 			    if (canseeit)
 			         You("see a door being opened.");
 			    else if (flags.soundok)
+#ifdef NEXT
+				{
+					You("hear the sound of a door opening.");
+					WindowSound("Door");
+				}
+#else
 			         You("hear the sound of a door opening.");
+#endif /* NEXT */
 		        }
 		        here->doormask = D_ISOPEN;
 			mnewsym(mtmp->mx, mtmp->my);

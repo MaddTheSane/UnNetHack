@@ -1,0 +1,11 @@
+FILESTABLE = {
+    OTHER_SOURCES = (Makefile.preamble, Makefile, Makefile.postamble);
+    IMAGES = (DefSyms.tiff, MonSyms.tiff, ObjSyms.tiff);
+};
+LANGUAGE = English;
+LOCALIZABLE_FILES = {
+};
+PROJECTVERSION = 1.1;
+PROJECTTYPE = Bundle;
+PROJECTNAME = NHImages;
+GENERATEMAIN = YES;

@@ -2,11 +2,15 @@
 /*	SCCS Id: @(#)lev_comp.c	3.0	90/01/03
 /*	Copyright (c) 1989 by Jean-Christophe Collet */
 /* NetHack may be freely redistributed.  See license for details. */
+/* Changed for graphical version of NetHack on NextStep */
+/*  by Christoph Marquardt 9/4/93 */
 
 /*
  * This file contains the Level Compiler code
  * It may handle special mazes & special room-levels
  */
+
+#define LEV_COMP_C	/* added by c.m. for NEXT */
 
 /* block some unused #defines to avoid overloading some cpp's */
 #define MONDATA_H	/* comment line for pre-compiled headers */

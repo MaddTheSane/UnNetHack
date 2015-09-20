@@ -231,8 +231,10 @@ getlock()
 	 * works
 	 * also incidentally prevents development of any hack-o-matic programs
 	 */
+#ifndef NEXT
 	if (!isatty(0))
 		error("You must play from a terminal.");
+#endif /* NEXT */
 #endif
 
 	(void) fflush(stdout);

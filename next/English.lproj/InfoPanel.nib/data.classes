@@ -1,0 +1,15 @@
+FirstResponder = {
+    ACTIONS = {
+    };
+    SUPERCLASS = Object;
+};
+NethackApp = {
+    ACTIONS = {
+	info:;
+    };
+    OUTLETS = {
+	infoPanel;
+	nethackView;
+    };
+    SUPERCLASS = Application;
+};

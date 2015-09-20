@@ -1,7 +1,10 @@
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /* NetHack may be freely redistributed.  See license for details. */
 /* makedefs.c - NetHack version 3.0 */
+/* Changed for graphical version of NetHack on NextStep */
+/*  by Christoph Marquardt 9/4/93 */
 
+#define MAKEDEFS_C	/* c.m. for NEXT */
 
 #define EXTERN_H
 #include	"config.h"

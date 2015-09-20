@@ -1,10 +1,18 @@
 /*	SCCS Id: @(#)termcap.c	3.0	88/11/20
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /* NetHack may be freely redistributed.  See license for details. */
+/* Changed for graphical version of NetHack on NextStep */
+/*  by Christoph Marquardt 9/4/93 */
+
 
 #define MONATTK_H	/* comment line for pre-compiled headers */
 /* block some unused #defines to avoid overloading some cpp's */
 #include "hack.h"	/* for ROWNO, COLNO, *HI, *HE, *AS, *AE */
+
+#ifdef NEXT
+#include "../next/nexttcap.c"
+/* If OS is NEXT include special termcap file, else use old code */
+#else
 
 #include <ctype.h>	/* for isdigit() */
 
@@ -865,3 +873,5 @@ init_hilite()
 #endif /* TEXTCOLOR */
 
 #endif /* OVLB */
+
+#endif /* !NEXT */

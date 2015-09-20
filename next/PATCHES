@@ -1,0 +1,45 @@
+12/27/93 NeXT version 0.3 alpha
+08/28/94 NeXT version 0.9 beta
+Changes for NetHack 3.0i NeXT version:
+
+config.h		added NEXT define, edited WIZARD, edited compress path
+global.h		added NEXT inclusions
+extern.h		added declerations for next.m
+termcap.c	added #if for NEXT. (Includes next/nexttcap.c instead.)
+end.c		added exit_main in done(how)
+topl.c		added NEXT specific putstr
+pri.c			added NEXT specific color handling in hilite()
+makedefs.c	added MAKEDEFS_C
+lev_comp.y	added LEV_COMP_C
+options.c	added number_pad = TRUE in initoptions() if NEXT
+invent.c		added WindowWindow()s in doinvent() if NEXT
+topten.c		changed puts() into printf() in outentry() and topten() if NEXT
+sounds.c		added #if for NEXT. (Includes next/nextsound.c instead.)
+monmove.c	added various WindowSound() if NEXT
+panic.c		added PANIC_C #define
+src/Makefile	added SysNeXT
+Makefile (?)
+
+Additional/System specific files:
+
+nextmain.c	next specific main. Init and run NXApp.
+nextunix.c	includes unixunix.c
+nexttty.c	mainly copied from amiga version
+English.Iproj/ in nethackdir		.nib files
+
+
+Files in the next directory:
+
+next.m		functions for next specific tasks
+next.h
+nexttcap.c	see termcap.c
+nextsound.c
+NethackApp.h
+NethackApp.m
+NethackView.h
+NethackView.m
+NHImages bundle project
+NHSound bundle project
+Application Project
+
+- Christoph Marquardt -

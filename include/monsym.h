@@ -5,6 +5,7 @@
 #ifndef MONSYM_H
 #define MONSYM_H
 
+
 #define	S_ANT		'a'
 #define	S_BLOB		'b'
 #define	S_COCKATRICE	'c'
@@ -66,6 +67,7 @@
 
 #define	S_WORM_TAIL	'~'
 #define	S_MIMIC_DEF	']'
+
 
 #define	G_UNIQ		0x800		/* generated only once */
 #define	G_HELL		0x400		/* generated only in "hell" */

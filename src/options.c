@@ -1,6 +1,8 @@
 /*	SCCS Id: @(#)options.c	3.0	89/11/15
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /* NetHack may be freely redistributed.  See license for details. */
+/* Changed for graphical version of NetHack on NextStep */
+/*  by Christoph Marquardt 9/4/93 */
 #include "hack.h"
 static boolean set_order;
 
@@ -27,7 +29,11 @@ initoptions()
 #ifdef TUTTI_FRUTTI
 	nmcpy(pl_fruit, objects[SLIME_MOLD].oc_name, PL_FSIZ);
 #endif
+#ifdef NEXT
+	flags.num_pad = TRUE;
+#else
 	flags.num_pad = FALSE;
+#endif /* NEXT */
 #ifdef TEXTCOLOR
 	flags.use_color = TRUE;
 #endif

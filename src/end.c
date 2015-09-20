@@ -1,6 +1,8 @@
 /*	SCCS Id: @(#)end.c	3.0	88/05/03
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /* NetHack may be freely redistributed.  See license for details. */
+/* Changed for graphical version of NetHack on NextStep */
+/*  by Christoph Marquardt 9/4/93 */
 
 #define MONATTK_H	/* comment line for pre-compiled headers */
 #define NEED_VARARGS	/* comment line for pre-compiled headers */
@@ -561,10 +563,14 @@ will not be checked.\n", wizard ? "wizard" : "discover");
 		topten(how);
 	}
 	if(done_stopprint) Printf("\n\n");
-#if defined(APOLLO) || defined(MACOS)
+#if defined(APOLLO) || defined(MACOS) || defined (NEXT)
 	getret();
 #endif
+#ifdef NEXT
+	exit_main(0);
+#else
 	exit(0);
+#endif
 }
 
 void

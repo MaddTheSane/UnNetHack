@@ -1,6 +1,8 @@
 /*	SCCS Id: @(#)do_name.c	3.0	89/11/08
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /* NetHack may be freely redistributed.  See license for details. */
+/* Changed for graphical version of NetHack on NextStep */
+/*  by Christoph Marquardt 9/4/93 */
 
 #include "hack.h"
 
@@ -59,6 +61,9 @@ const char *goal;
 	}
 	macflags |= fMoveWRTMouse;
 #endif
+#ifdef NEXT
+	WindowCursor(TRUE);
+#endif /* NEXT */
 	cx = cc->x;
 	cy = cc->y;
 #ifdef CLIPPING
@@ -95,6 +100,9 @@ const char *goal;
 #endif
 			cc->x = -1;
 			cc->y = 0;
+#ifdef NEXT
+			WindowCursor(FALSE);
+#endif /* NEXT */
 			return;
 		}
 	nxtc:	;
@@ -112,6 +120,9 @@ const char *goal;
 #endif
 	cc->x = cx;
 	cc->y = cy;
+#ifdef NEXT
+	WindowCursor(FALSE);
+#endif /* NEXT */
 	return;
 }
 

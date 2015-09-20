@@ -78,6 +78,7 @@ extern struct objclass objects[];
 
 /* definitions of all object-symbols */
 
+
 #define	RANDOM_SYM	'\0'	/* used for generating random objects */
 #define	ILLOBJ_SYM	']'	/* should be same as S_MIMIC_DEF      */
 #define	AMULET_SYM	'"'
@@ -98,6 +99,7 @@ extern struct objclass objects[];
 #ifdef SPELLS
 #define	SPBOOK_SYM	'+'	/* actually SPELL-book */
 #endif
+
 
 #ifdef TUTTI_FRUTTI
 struct fruit {

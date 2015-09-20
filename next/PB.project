@@ -1,0 +1,32 @@
+INSTALLDIR = "$(HOME)/Apps";
+APPICON = Game.tiff;
+GENERATEMAIN = YES;
+DOCICONFILES = ();
+FILESTABLE = {
+    OTHER_LIBS = (Media_s, NeXT_s, Indexing_s);
+    CLASSES = (NethackApp.m, NethackView.m);
+    OTHER_RESOURCES = (PATCHES, Help);
+    BUNDLES = (NHImages.bproj, NHSounds.bproj);
+    OTHER_SOURCES = (Makefile.preamble, Makefile, Makefile.postamble);
+    H_FILES = (NethackApp.h, NethackView.h, next.h);
+    INTERFACES = (Commands.nib, InfoPanel.nib, Nethack.nib, PrefPanel.nib);
+    IMAGES = (ProbeRender2.tiff);
+    OTHER_LINKED = ();
+    SUBPROJECTS = ();
+    M_FILES = (NetHack_main.m, next.m);
+};
+APPCLASS = NethackApp;
+MAINNIB = Nethack;
+DOCEXTENSIONS = ();
+PROJECTTYPE = Application;
+PROJECTVERSION = 1.1;
+LOCALIZABLE_FILES = {
+    Help;
+    Nethack.nib;
+    PrefPanel.nib;
+    Commands.nib;
+    InfoPanel.nib;
+};
+PROJECTNAME = NetHack;
+SYSTEMEXTENSIONS = ();
+LANGUAGE = English;

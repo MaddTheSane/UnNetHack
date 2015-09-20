@@ -773,6 +773,9 @@ const char *text;
 	register struct line *tl;
 	register boolean hmenu = FALSE;
 
+#ifdef NEXT
+	WindowWindow(TRUE);
+#endif /* NEXT */
 	if(mode == -1) { /* help menu display only */
 		mode = 2;
 		hmenu = TRUE;
@@ -785,6 +788,9 @@ const char *text;
 			cornline(1, text);	/* title */
 			cornline(1, "");	/* blank line */
 		}
+#ifdef NEXT
+	WindowWindow(FALSE);
+#endif /* NEXT */
 		return;
 	}
 
@@ -808,6 +814,9 @@ const char *text;
 	    else
 		texttail->next_line = tl;
 	    texttail = tl;
+#ifdef NEXT
+	WindowWindow(FALSE);
+#endif /* NEXT */
 	    return;
 	}
 
@@ -885,6 +894,9 @@ const char *text;
 			    texthead = tl->next_line;
 			    free((genericptr_t) tl);
 			}
+#ifdef NEXT
+	WindowWindow(FALSE);
+#endif /* NEXT */
 			return;
 		    }
 		}
@@ -900,6 +912,9 @@ const char *text;
 		texthead = tl->next_line;
 		free((genericptr_t) tl);
 	}
+#ifdef NEXT
+	WindowWindow(FALSE);
+#endif /* NEXT */
 }
 
 #endif /* OVL0 */

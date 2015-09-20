@@ -1,11 +1,19 @@
 /*	SCCS Id: @(#)sounds.c	3.0	90/02/05 */
 /* NetHack may be freely redistributed.  See license for details. */
 /* Copyright (c) 1989 Janet Walz, Mike Threepoint */
+/* Modified by cmarq@cube.net for graphical NEXTSTEP version (added notice: 8/26/94) */
+
 
 #define ONAMES_H	/* comment line for pre-compiled headers */
 /* block some unused #defines to avoid overloading some cpp's */
 
 #include "hack.h"
+
+#ifdef NEXT
+#include "../next/nextsound.c"
+/* If OS is NEXT include special sound.c file, else use old code */
+#else
+
 #include "edog.h"
 
 static int FDECL(domonnoise,(struct monst *));
@@ -673,3 +681,5 @@ dotalk()
 }
 
 #endif /* OVLB */
+
+#endif /* !NEXT */

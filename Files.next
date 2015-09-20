@@ -1,0 +1,135 @@
+Files.orig          README_FIRST.rtfd/  next/
+Guidebook.orig      auxil/              others/
+README.orig         include/            src/
+
+README_FIRST.rtfd:
+TXT.rtf
+
+auxil:
+Guidebook       castle          endgame         lev_comp.6      oracles         tower1
+Guidebook.mn    castle.des      endgame.des     license         rumors          tower2
+MacHelp         cmdhelp         help            nethack.6       rumors.fal      tower3
+Makefile        data            hh              nethack.sh      rumors.tru
+Makefile.auxil  data.base       history         opthelp         tower.des
+
+include:
+MacAlert.h    decl.h        global.h      monattk.h     objclass.h    sp_lev.h      unixconf.h
+amiconf.h     def_os2.h     gold.h        mondata.h     onames.h      spell.h       vault.h
+artifact.h    edog.h        hack.h        monflag.h     patchlevel.h  system.h      vmsconf.h
+attrib.h      epri.h        lev.h         monst.h       pcconf.h      termcap.h     wseg.h
+color.h       eshk.h        lev_comp.h    monsym.h      permonst.h    tosconf.h     you.h
+config.h      extern.h      macconf.h     msdos.h       pm.h          tradstdc.h    youprop.h
+coord.h       flag.h        mfndpos.h     nextconf.h    prop.h        trampoli.h
+date.h        func_tab.h    mkroom.h      obj.h         rm.h          trap.h
+
+next:
+English.lproj/      NHSounds.bproj/     PATCHES             next.h
+Game.tiff           NetHack.iconheader  PB.gdbinit          next.m
+Makefile            NetHack_main.m      PB.project          nextsound.c
+Makefile.NHorig     NethackApp.h        ProbeRender2.tiff   nexttcap.c
+Makefile.postamble  NethackApp.m        README.rtfd/        objsymdef.h
+Makefile.preamble   NethackView.h       TODO                sym/
+NHImages.bproj/     NethackView.m       monsymdef.h         symlist
+
+next/English.lproj:
+Commands.nib/    Help/            InfoPanel.nib~/  Nethack.nib~/    PrefPanel.nib~/
+Commands.nib~/   InfoPanel.nib/   Nethack.nib/     PrefPanel.nib/
+
+next/English.lproj/Commands.nib:
+data.classes  data.nib
+
+next/English.lproj/Commands.nib~:
+data.classes  data.nib
+
+next/English.lproj/Help:
+Index.rtfd/           TableOfContents.rtf*  game.rtfd/            license.rtfd/
+Intro.rtfd/           comm.rtfd/            hist.rtfd/
+
+next/English.lproj/Help/Index.rtfd:
+1PixelRule_Index.tiff*        396344_PixelRule_Index.tiff*  854927_PixelRule_Index.tiff*
+213102_PixelRule_Index.tiff*  419343_PixelRule_Index.tiff*  86115_PixelRule_Index.tiff*
+228564_PixelRule_Index.tiff*  421483_PixelRule_Index.tiff*  867553_PixelRule_Index.tiff*
+233683_PixelRule_Index.tiff*  506328_PixelRule_Index.tiff*  913680_PixelRule_Index.tiff*
+249151_PixelRule_Index.tiff*  556892_PixelRule_Index.tiff*  91917_PixelRule_Index.tiff*
+257522_PixelRule.tiff*        55774_PixelRule_Index.tiff*   922556_PixelRule_Index.tiff*
+258566_PixelRule_Index.tiff*  565289_PixelRule_Index.tiff*  956766_PixelRule_Index.tiff*
+281899_PixelRule_Index.tiff*  70598_PixelRule_Index.tiff*   TXT.rtf
+285316_PixelRule_Index.tiff*  730050_PixelRule_Index.tiff*
+32130_PixelRule_Index.tiff*   790199_PixelRule_Index.tiff*
+
+next/English.lproj/Help/Intro.rtfd:
+257522_PixelRule.tiff*  TXT.rtf
+
+next/English.lproj/Help/comm.rtfd:
+257522_PixelRule.tiff*  DefSyms.tiff            ObjSyms.tiff            TXT.rtf
+
+next/English.lproj/Help/game.rtfd:
+257522_PixelRule.tiff*  TXT.rtf
+
+next/English.lproj/Help/hist.rtfd:
+257522_PixelRule.tiff*  TXT.rtf
+
+next/English.lproj/Help/license.rtfd:
+257522_PixelRule.tiff*  TXT.rtf
+
+next/English.lproj/InfoPanel.nib:
+data.classes  data.nib
+
+next/English.lproj/InfoPanel.nib~:
+data.classes  data.nib
+
+next/English.lproj/Nethack.nib:
+data.classes  data.nib
+
+next/English.lproj/Nethack.nib~:
+data.classes  data.nib
+
+next/English.lproj/PrefPanel.nib:
+data.classes  data.nib
+
+next/English.lproj/PrefPanel.nib~:
+data.classes  data.nib
+
+next/NHImages.bproj:
+DefSyms.tiff        Makefile            Makefile.preamble   ObjSyms.tiff
+English.lproj/      Makefile.postamble  MonSyms.tiff        PB.project
+
+next/NHImages.bproj/English.lproj:
+
+next/NHSounds.bproj:
+Buzzing.snd         Door.snd            Makefile.postamble  Shouting.snd
+Chime.snd           English.lproj/      Makefile.preamble   Speech.snd
+Curse.snd           Makefile            PB.project          Water.snd
+
+next/NHSounds.bproj/English.lproj:
+
+next/README.rtfd:
+TXT.rtf       WInitial.eps
+
+next/sym:
+NHImages.bproj/  NHSounds.bproj/
+
+next/sym/NHImages.bproj:
+NHImages.c
+
+next/sym/NHSounds.bproj:
+
+others:
+random.c
+
+src:
+Makefile      do_name.c     ioctl.c       mkobj.c       pager.c       search.c      uhitm.c
+Makefile.src  do_wear.c     lev_comp.c    mkroom.c      panic.c       shk.c         unixmain.c
+SysNeXT       dog.c         lev_comp.l    mon.c         pickup.c      shknam.c      unixtty.c
+Sysunix       dogmove.c     lev_comp.y    mondata.c     polyself.c    sit.c         unixunix.c
+allmain.c     dokick.c      lev_lex.c     monmove.c     potion.c      sounds.c      vault.c
+alloc.c       dothrow.c     lev_main.c    monst.c       pray.c        sp_lev.c      version.c
+apply.c       eat.c         lock.c        mthrowu.c     pri.c         spell.c       weapon.c
+artifact.c    end.c         mail.c        music.c       priest.c      steal.c       were.c
+attrib.c      engrave.c     makedefs.c    nextmain.c    prisym.c      termcap.c     wield.c
+bones.c       exper.c       makemon.c     nexttty.c     read.c        timeout.c     wizard.c
+cmd.c         extralev.c    mcastu.c      nextunix.c    restore.c     topl.c        worm.c
+dbridge.c     fountain.c    mhitm.c       o_init.c      rip.c         topten.c      worn.c
+decl.c        getline.c     mhitu.c       objects.c     rnd.c         track.c       write.c
+demon.c       hack.c        mklev.c       objnam.c      rumors.c      trap.c        zap.c
+do.c          invent.c      mkmaze.c      options.c     save.c        u_init.c

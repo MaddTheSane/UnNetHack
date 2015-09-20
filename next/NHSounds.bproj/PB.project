@@ -1,0 +1,14 @@
+BUNDLE_EXTENSION = bundle;
+LOCALIZABLE_FILES = {
+};
+LANGUAGE = English;
+PROJECTVERSION = 1.1;
+PROJECTTYPE = Bundle;
+PROJECTNAME = NHSounds;
+GENERATEMAIN = YES;
+DOCICONFILES = ();
+FILESTABLE = {
+    OTHER_SOURCES = (Makefile.preamble, Makefile, Makefile.postamble);
+    OTHER_RESOURCES = ();
+    SOUNDS = (Buzzing.snd, Chime.snd, Curse.snd, Door.snd, Shouting.snd, Speech.snd, Water.snd);
+};

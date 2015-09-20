@@ -1,0 +1,166 @@
+###############################################################################
+#  NeXT Makefile.preamble Template
+#  Copyright 1993, NeXT Computer, Inc.
+#
+#  This Makefile is used for configuring the standard app makefiles associated
+#  with ProjectBuilder.  
+#  
+#  Use this template to set attributes for a project, sub-project, bundle, or
+#  palette.  Each node in the project's tree of sub-projects and bundles 
+#  should have it's own Makefile.preamble and Makefile.postamble.
+#
+###############################################################################
+## Configure the flags passed to $(CC) here.  These flags will also be 
+## inherited by all nested sub-projects and bundles.  Put your -I, -D, -U, and
+## -L flags here.  To change the default flags that get passed to ${CC} 
+## (e.g. change -O to -O2), see Makefile.postamble.
+
+# Flags passed to compiler (in addition to -g, -O, etc)
+OTHER_CFLAGS = 
+# Flags passed to ld (in addition to -ObjC, etc.)
+OTHER_LDFLAGS =	
+
+# Nethack object files:
+
+NHOBJS = ../src/allmain.o ../src/alloc.o ../src/apply.o ../src/artifact.o ../src/attrib.o ../src/bones.o ../src/cmd.o ../src/dbridge.o\
+	../src/decl.o ../src/demon.o ../src/do.o ../src/do_name.o ../src/do_wear.o ../src/dog.o ../src/dogmove.o ../src/dokick.o\
+	../src/dothrow.o ../src/eat.o ../src/end.o ../src/engrave.o ../src/exper.o ../src/extralev.o ../src/fountain.o ../src/getline.o\
+	../src/hack.o ../src/invent.o ../src/ioctl.o ../src/lock.o ../src/mail.o ../src/main.o ../src/makemon.o ../src/mcastu.o ../src/mhitm.o\
+	../src/mhitu.o ../src/mklev.o ../src/mkmaze.o ../src/mkobj.o ../src/mkroom.o ../src/mon.o ../src/mondata.o ../src/monmove.o\
+	../src/monst.o ../src/mthrowu.o ../src/music.o ../src/o_init.o ../src/objects.o ../src/objnam.o ../src/options.o ../src/pager.o\
+	../src/pickup.o ../src/polyself.o ../src/potion.o ../src/pray.o ../src/pri.o ../src/priest.o ../src/prisym.o ../src/read.o\
+	../src/restore.o ../src/rip.o ../src/rnd.o ../src/rumors.o ../src/save.o ../src/search.o ../src/shk.o ../src/shknam.o ../src/sit.o\
+	../src/sounds.o ../src/sp_lev.o ../src/spell.o ../src/steal.o ../src/termcap.o ../src/timeout.o ../src/topl.o ../src/topten.o\
+	../src/track.o ../src/trap.o ../src/tty.o ../src/u_init.o ../src/uhitm.o ../src/unix.o ../src/vault.o ../src/version.o\
+	../src/weapon.o ../src/were.o ../src/wield.o ../src/wizard.o ../src/worm.o ../src/worn.o ../src/write.o ../src/zap.o
+
+
+## Configure what is linked in at each level here.  Libraries are only used in
+## the final 'app' linking step.  Final 'app' linking is only done via the
+## 'app', 'debug', and 'profile' targets when they are invoked for
+## the top-level app.
+
+# Additional relocatables to be linked in at this level
+OTHER_OFILES = $(NHOBJS)
+# Additional libs to link apps against ('app' target)
+OTHER_LIBS = 
+# Additional libs to link apps against ('debug' target)
+OTHER_DEBUG_LIBS = 
+# Additional libs to link apps against ('profile' target)
+OTHER_PROF_LIBS = 
+
+# More 'app' libraries when $(JAPANESE) = "YES"
+OTHER_JAPANESE_LIBS = 
+# More 'debug' libraries when $(JAPANESE) = "YES"
+OTHER_JAPANESE_DEBUG_LIBS = 
+# More 'profile' libs when $(JAPANESE) = "YES"
+OTHER_JAPANESE_PROF_LIBS = 
+
+## Configure how things get built here.  Additional dependencies, sourcefiles, 
+## derived files, and build order should be specified here.
+
+# Include original Nethack makefile:
+#	Hack Makefile.
+#	Next version	8/24/93
+
+# newer makes predefine $(MAKE) to 'make' and do smarter processing of
+# recursive make calls if $(MAKE) is used
+# these makes allow $(MAKE) to be overridden by the environment if someone
+# wants to (or has to) use something other than the standard make, so we do
+# not want to unconditionally set $(MAKE) here
+#
+# unfortunately, some older makes do not predefine $(MAKE); if you have one of
+# these, uncomment the following line
+# (you will know that you have one if you get complaints about unable to
+# execute things like 'data' and 'rumors')
+# MAKE = make
+
+# make NetHack
+GAME     = nethack
+GAMEUID  = games
+GAMEGRP  = bin
+
+# GAMEDIR also appears in config.h as "HACKDIR".
+#
+# note that 'make install' believes in creating a nice tidy GAMEDIR for
+# installation, free of debris from previous NetHack versions --
+# therefore there should not be anything in GAMEDIR that you want to keep
+# (if there is, you'll have to do the installation by hand or modify the
+# instructions)
+GAMEDIR  = $(PRODUCT_ROOT)
+SHELLDIR = /usr/games
+MANDIR   = /usr/man/man6
+MANEXT   = 6
+
+# manual installation for most BSD-style systems
+GAMEMANCREATE = cp auxil/nethack.6
+LEVMANCREATE = cp auxil/lev_comp.6
+# manual installation for most SYSV-style systems
+# GAMEMANCREATE = nroff -man auxil/nethack.6 >
+# LEVMANCREATE = nroff -man auxil/lev_comp.6 >
+
+AUXHELP = help hh cmdhelp history opthelp oracles
+VARAUX = ./data ./rumors
+SPEC_LEVS = endgame castle tower1 tower2 tower3
+AUX = $(AUXHELP) $(VARAUX) $(SPEC_LEVS) license
+
+$(GAME):
+	( cd ../src ; $(MAKE) )
+
+nethackorig:	$(GAME) Guidebook data rumors spec_levs
+	@echo "Done."
+
+Guidebook:
+	( cd ../auxil ; $(MAKE) Guidebook )
+
+data:
+	( cd ../auxil ; $(MAKE) data )
+
+rumors:
+	( cd ../auxil ; $(MAKE) rumors )
+
+spec_levs:
+	( cd ../src ; $(MAKE) lev_comp )
+	( cd ../auxil ; $(MAKE) spec_levs )
+	
+
+# Other dependencies of this project
+OTHER_PRODUCT_DEPENDS = nethackorig perm
+# Built *before* building subprojects/bundles
+OTHER_EARLY_TARGETS = 
+# Other source files maintained by .pre/postamble
+OTHER_SOURCEFILES = 
+# Additional files to be removed by `make clean' 
+OTHER_GARBAGE = 
+# Precompiled headers to be built before any compilation occurs (e.g., draw.p)
+PRECOMPS = 
+
+# Targets to be built before subprojects & bundles
+OTHER_INITIAL_TARGETS =	
+
+# A virtual root directory (other than /) to be prepended to the $(INSTALLDIR) 
+# passed from ProjectBuilder.
+DSTROOT = 
+
+
+## Add more obscure source files here to cause them to be automatically 
+## processed by the appropriate tool.  Note that these files should also be
+## added to "Supporting Files" in ProjectBuilder.  The desired .o files that 
+## result from these files should also be added to OTHER_OFILES above so they
+## will be linked in.
+
+# .msg files that should have msgwrap run on them
+MSGFILES = 
+# .defs files that should have mig run on them
+DEFSFILES = 
+# .mig files (no .defs files) that should have mig run on them
+MIGFILES = 
+
+## Add additional Help directories here (add them to the project as "Other 
+## Resources" in Project Builder) so that they will be compressed into .store
+## files and copied into the app wrapper.  If the help directories themselves
+## need to also be in the app wrapper, then a cp command will need to be added
+## in an after_install target.
+OTHER_HELP_DIRS = 
+
+

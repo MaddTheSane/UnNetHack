@@ -1,6 +1,8 @@
 /*	SCCS Id: @(#)config.h	3.0	89/06/23
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /* NetHack may be freely redistributed.  See license for details. */
+/* Changed for graphical version of NetHack on NextStep */
+/*  by Christoph Marquardt 9/4/93 */
 
 #ifndef CONFIG_H /* make sure the compiler does not see the typedefs twice */
 #define	CONFIG_H
@@ -14,7 +16,9 @@
  *		provides it (comment out the default OS option here).
  */
 
-#define UNIX		/* delete if no fork(), exec() available */
+#define NEXT		/* NextStep version */
+
+/* #define UNIX	*/	/* delete if no fork(), exec() available */
 
 #ifdef __MSDOS__	/* Turbo C auto-defines __MSDOS__, MSC defines MSDOS */
 #define MSDOS		/* define for MS-DOS (in case compiler doesn't) */
@@ -94,12 +98,13 @@
  *		LOGFILE and NEWS refer to files in the playground.
  */
 
+
 #ifndef WIZARD		/* allow for compile-time or Makefile changes */
 # ifndef KR1ED
-#define WIZARD  "izchak" /* the person allowed to use the -D option */
+#define WIZARD  "me" /* the person allowed to use the -D option */
 # else
 #define WIZARD
-#define WIZARD_NAME "johnny"
+#define WIZARD_NAME "me"
 # endif
 #endif
 
@@ -114,7 +119,7 @@
  */
 
 #ifndef MACOS
-#define COMPRESS "/usr/local/compress"  /* path name for 'compress' */
+#define COMPRESS "/usr/ucb/compress"  /* path name for 'compress' */
 # ifndef COMPRESS
 #define ZEROCOMP	/* Use only if COMPRESS is not used -- Olaf Seibert */
 # endif
@@ -129,7 +134,7 @@
  * If you define HACKDIR, then this will be the default playground;
  * otherwise it will be the current directory.
  */
-#define HACKDIR "/usr/games/lib/nethackdir" 	/* nethack directory */
+/* #define HACKDIR "/usr/games/lib/nethackdir"  */	/* nethack directory */
 
 /*
  * Some system administrators are stupid enough to make Hack suid root

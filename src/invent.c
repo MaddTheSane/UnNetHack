@@ -1,6 +1,7 @@
 /*	SCCS Id: @(#)invent.c	3.0	88/10/22
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /* NetHack may be freely redistributed.  See license for details. */
+/* Modified by cmarq@cube.net for graphical NEXTSTEP version (added notice: 8/26/94) */
 
 #include	"hack.h"
 
@@ -919,7 +920,6 @@ register const char *lets;
 		}
 	}
 	ct = 0;
-
 	cornline(0, NULL);
 nextclass:
 	classcount = 0;

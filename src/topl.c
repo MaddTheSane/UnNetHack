@@ -1,6 +1,8 @@
 /*	SCCS Id: @(#)topl.c	3.0	89/01/09
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /* NetHack may be freely redistributed.  See license for details. */
+/* Changed for graphical version of NetHack on NextStep */
+/*  by Christoph Marquardt 9/4/93 */
 
 #define NEED_VARARGS /* Uses ... */	/* comment line for pre-compiled headers */
 #include "hack.h"
@@ -354,12 +356,25 @@ char c;
 	(void) putchar(c);
 }
 
+#ifdef NEXT
+
+void
+putstr(s)
+register const char *s;
+{
+	WindowPutstr(s);
+}
+
+#else
+
 void
 putstr(s)
 register const char *s;
 {
 	while(*s) putsym(*s++);
 }
+
+#endif /* NEXT */
 
 #endif /* OVL0 */
 #ifdef OVL2
