@@ -12,20 +12,30 @@
 
 #define	NOINVSYM	'#'
 
+#ifdef OVL1
 static boolean FDECL(mergable,(struct obj *,struct obj *));
-OSTATIC void FDECL(assigninvlet,(struct obj *));
 static int FDECL(merged,(struct obj *,struct obj *,int));
-OSTATIC struct obj *FDECL(mkgoldobj,(long));
-#ifndef OVERLAY
-static int FDECL(ckunpaid,(struct obj *));
-#else
-int FDECL(ckunpaid,(struct obj *));
-#endif
+# ifdef WIZARD
+/* wizards can wish for venom, which will become an invisible inventory
+ * item without this.  putting it in inv_order would mean venom would
+ * suddenly become a choice for all the inventory-class commands, which
+ * would probably cause mass confusion.  the test for inventory venom
+ * is only WIZARD and not wizard because the wizard can leave venom lying
+ * around on a bones level for normal players to find.
+ */
+char venom_inv[] = { VENOM_SYM, 0 };
+# endif
+#endif /* OVL1 */
+STATIC_DCL void FDECL(assigninvlet,(struct obj *));
+STATIC_DCL struct obj *FDECL(mkgoldobj,(long));
+STATIC_PTR int FDECL(ckunpaid,(struct obj *));
+#ifdef OVLB
 static boolean NDECL(wearing_armor);
 static boolean FDECL(is_worn,(struct obj *));
-static char FDECL(obj_to_let,(struct obj *));
+#endif /* OVLB */
+STATIC_DCL char FDECL(obj_to_let,(struct obj *));
 
-OSTATIC char *FDECL(xprname,(struct obj *,CHAR_P,BOOLEAN_P));
+STATIC_DCL char *FDECL(xprname,(struct obj *,CHAR_P,BOOLEAN_P));
 
 #ifdef OVLB
 
@@ -39,7 +49,7 @@ char inv_order[] = {
 	POTION_SYM, RING_SYM, WAND_SYM, TOOL_SYM, GEM_SYM,
 	ROCK_SYM, BALL_SYM, CHAIN_SYM, 0 };
 
-XSTATIC void
+STATIC_OVL void
 assigninvlet(otmp)
 register struct obj *otmp;
 {
@@ -168,13 +178,16 @@ register struct obj *obj;
 		obj->quan--;
 		obj->owt = weight(obj);
 	} else {
-		if(obj->otyp == CORPSE) food_disappears(obj);
+		if(obj->olet == FOOD_SYM) food_disappears(obj);
 		setnotworn(obj);
 		freeinv(obj);
 		delete_contents(obj);
 		obfree(obj, (struct obj *) 0);
 	}
 }
+
+#endif /* OVLB */
+#ifdef OVL3
 
 void
 freeinv(obj)
@@ -203,6 +216,9 @@ register struct obj *obj;
 	}
 }
 
+#endif /* OVL3 */
+#ifdef OVL2
+
 /* destroy object in fobj chain (if unpaid, it remains on the bill) */
 void
 delobj(obj)
@@ -211,7 +227,7 @@ register struct obj *obj;
 #ifdef WALKIES
 	if(obj->otyp == LEASH && obj->leashmon != 0) o_unleash(obj);
 #endif
-	if(obj->otyp == CORPSE) food_disappears(obj);
+	if(obj->olet == FOOD_SYM) food_disappears(obj);
 
 	freeobj(obj);
 	unpobj(obj);
@@ -273,7 +289,7 @@ register struct gold *gold;
 #endif
 }
 
-#endif /* OVLB */
+#endif /* OVL2 */
 #ifdef OVL0
 
 struct obj *
@@ -349,6 +365,9 @@ int x, y;
 	return(FALSE);
 }
 
+#endif /* OVLB */
+#ifdef OVL2
+
 struct gold *
 g_at(x,y)
 register int x, y;
@@ -361,8 +380,11 @@ register int x, y;
 	return((struct gold *)0);
 }
 
+#endif /* OVL2 */
+#ifdef OVLB
+
 /* make dummy object structure containing gold - for temporary use only */
-XSTATIC
+STATIC_OVL
 struct obj *
 mkgoldobj(q)
 register long q;
@@ -498,6 +520,13 @@ register const char *let,*word;
 		return((struct obj *)0);
 	}
 	for(;;) {
+#ifdef MACOS
+		short	tmpflags;
+		extern short macflags;
+		
+		tmpflags = macflags;
+		macflags &= ~fDoNonKeyEvt;
+#endif
 		if(!buf[0]) {
 #ifdef REDO
 		    if(!in_doagain)
@@ -521,6 +550,9 @@ register const char *let,*word;
 			allowcnt = 2;	/* signal presence of cnt */
 			ilet = readchar();
 		}
+#ifdef MACOS
+		macflags = tmpflags;
+#endif
 		if(digit(ilet)) {
 			pline("No count allowed with this command.");
 			continue;
@@ -625,10 +657,7 @@ register const char *let,*word;
 #endif /* OVL1 */
 #ifdef OVLB
 
-#ifndef OVERLAY
-static 
-#endif
-int
+STATIC_PTR int
 ckunpaid(otmp)
 register struct obj *otmp;
 {
@@ -651,7 +680,7 @@ register struct obj *otmp;
     return(!!(otmp->owornmask & (W_ARMOR | W_RING | W_AMUL | W_TOOL | W_WEP)));
 }
 
-static const char removeables[] =
+static const char NEARDATA removeables[] =
 	{ ARMOR_SYM, WEAPON_SYM, RING_SYM, AMULET_SYM, TOOL_SYM, ' ', 0 };
 
 /* interactive version of getobj - used for Drop, Identify and */
@@ -822,7 +851,11 @@ ret:
 	return(cnt);
 }
 
-static char
+#endif /* OVLB */
+#ifdef OVL2
+
+STATIC_OVL
+char
 obj_to_let(obj)	/* should of course only be called for things in invent */
 register struct obj *obj;
 {
@@ -844,10 +877,10 @@ register struct obj *obj;
 	pline(xprname(obj, obj_to_let(obj), TRUE));
 }
 
-#endif /* OVLB */
+#endif /* OVL2 */
 #ifdef OVL1
 
-XSTATIC char *
+STATIC_OVL char *
 xprname(obj,let,dot)
 register struct obj *obj;
 register char let;
@@ -938,7 +971,15 @@ nextclass:
 		}
 		if(!flags.invlet_constant) if(++ilet > 'z') ilet = 'A';
 	}
-	if (flags.sortpack && *++invlet) goto nextclass;
+	if (flags.sortpack) {
+		if (*++invlet) goto nextclass;
+#ifdef WIZARD
+		if (--invlet != venom_inv) {
+			invlet = venom_inv;
+			goto nextclass;
+		}
+#endif
+	}
 	any[ct] = 0;
 	cornline(2, any);
 }
@@ -1005,9 +1046,12 @@ dotypeinv()				/* free after Robert Viduya */
 	    return(0);
 	}
 
-	if((c == 'u' || c == 'U') && !unpd) {
+	if (c == 'u' || c == 'U') {
+	    if (!unpd) {
 		You("are not carrying any unpaid objects.");
 		return(0);
+	    } else
+		c = 'u';
 	}
 
 	stct = 0;
@@ -1340,6 +1384,9 @@ register struct obj *obj;
 	delobj(otmp);
 }
 
+#endif /* OVLB */
+#ifdef OVL1
+
 /*
  * Convert from a symbol to a string for printing object classes
  *
@@ -1350,7 +1397,7 @@ register struct obj *obj;
  *	WAND_SYM, [SPBOOK_SYM], RING_SYM, GEM_SYM, 0 };
  */
 
-static const char *names[] = {
+static const char NEARDATA *names[] = {
 	"Illegal objects", "Amulets", "Comestibles", "Weapons",
 	"Tools", "Iron balls", "Chains", "Boulders/Statues", "Armor",
 	"Potions", "Scrolls", "Wands",
@@ -1359,13 +1406,18 @@ static const char *names[] = {
 #endif
 	"Rings", "Gems"};
 
+#ifdef WIZARD
+static const char NEARDATA *venom_name = "Venoms";
+#endif
+
 char *
 let_to_name(let)
 char let;
 {
+	const char *class_name;
 	const char *pos = index(obj_symbols, let);
 	/* arbitrary buffer size by Tom May (tom@uw-warp) */
-	static char *buf = NULL;
+	static char NEARDATA *buf = NULL;
 
 	if (buf == NULL)
 	    buf = (char *) alloc ((unsigned)(strlen(HI)+17+strlen(HE)));
@@ -1375,13 +1427,25 @@ char let;
 			Boulders/Statues   +  '\0'
 			1234567890123456 = 16 + 1 = 17
 */
-	if (pos == NULL) pos = obj_symbols;
+#ifdef WIZARD
+	if (pos == NULL && let == VENOM_SYM)
+		class_name = venom_name;
+	else {
+#endif
+		if (pos == NULL) pos = obj_symbols;
+		class_name = names[pos - obj_symbols];
+#ifdef WIZARD
+	}
+#endif
 	if (HI && HE)
-	    Sprintf(buf, "%s%s%s", HI, names[pos - obj_symbols], HE);
+	    Sprintf(buf, "%s%s%s", HI, class_name, HE);
 	else
-	    Sprintf(buf, "%s", names[pos - obj_symbols]);
+	    Sprintf(buf, "%s", class_name);
 	return (buf);
 }
+
+#endif /* OVL1 */
+#ifdef OVLB
 
 void
 reassign()

@@ -7,20 +7,15 @@
  */
 
 #include	"hack.h"
-#ifndef OVERLAY
-static int FDECL(in_container,(struct obj *));
-static int FDECL(ck_container,(struct obj *));
-static int FDECL(ck_bag,(struct obj *));
-static int FDECL(out_container,(struct obj *));
-#else
-int FDECL(in_container,(struct obj *));
-int FDECL(ck_container,(struct obj *));
-int FDECL(ck_bag,(struct obj *));
-int FDECL(out_container,(struct obj *));
-#endif
+STATIC_PTR int FDECL(in_container,(struct obj *));
+STATIC_PTR int FDECL(ck_container,(struct obj *));
+STATIC_PTR int FDECL(ck_bag,(struct obj *));
+STATIC_PTR int FDECL(out_container,(struct obj *));
 void FDECL(explode_bag,(struct obj *));
 
-#ifdef OVLB
+#define DELTA_CWT(cont) ((cont)->cursed?(obj->owt*2):(obj->owt/((cont)->blessed?4:2)) + 1)
+
+#ifdef OVL0
 
 static const char nearloadmsg[] = "have a little trouble lifting";
 
@@ -257,9 +252,9 @@ int all;
 		if(wt > 0) {
 			if(obj->quan > 1) {
 				/* see how many we can lift */
-				int savequan = obj->quan;
+				unsigned savequan = obj->quan;
 				int iw = inv_weight();
-				int qq;
+				unsigned qq;
 				for(qq = 1; qq < savequan; qq++){
 					obj->quan = qq;
 					if(iw + weight(obj) > 0)
@@ -274,7 +269,7 @@ int all;
 				You("can only carry %s of the %s lying here.",
 					    (qq == 1) ? "one" : "some",
 					    doname(obj));
-				    obj3 = splitobj(obj, qq);
+				    obj3 = splitobj(obj, (int)qq);
 				    if(obj3->otyp == SCR_SCARE_MONSTER)
 					    if(obj3->spe) obj->spe = 0;
 				    goto lift_some;
@@ -283,7 +278,10 @@ int all;
 			pline("There %s %s here, but %s.",
 				(obj->quan == 1) ? "is" : "are",
 				doname(obj),
-				!invent ? "it is too heavy for you to lift"
+				!invent ? 
+				(obj->quan == 1 ?
+				    "it is too heavy for you to lift"
+				  : "they are too heavy for you to lift")
 					: "you cannot carry any more");
 				if(obj->otyp == SCR_SCARE_MONSTER)
 					if(obj->spe) obj->spe = 0;
@@ -296,8 +294,8 @@ int all;
 				if(obj->spe) obj->spe = 0;
 			break;
 		}
-		{ int pickquan = obj->quan;
-		  int mergquan;
+		{ unsigned pickquan = obj->quan;
+		  unsigned mergquan;
 
 		  obj = pick_obj(obj);
 		  if(wt > -5) You(nearloadmsg);
@@ -324,17 +322,22 @@ register struct obj *otmp;
 	return(addinv(otmp));    /* might merge it with other objects */
 }
 
+#endif /* OVL1 */
+#ifdef OVLB
+
 int
 doloot() {	/* loot a container on the floor. */
 
-	register struct obj *cobj;
+	register struct obj *cobj, *nobj;
 	register int c;
 
 	if (Levitation) {
 		You("cannot reach the floor.");
 		return(0);
 	}
-	for(cobj = level.objects[u.ux][u.uy]; cobj; cobj = cobj->nexthere) {
+	for(cobj = level.objects[u.ux][u.uy]; cobj; cobj = nobj) {
+	        nobj = cobj->nexthere;
+
 		if(Is_container(cobj)) {
 
 		    pline("There is %s here, loot it? ", doname(cobj));
@@ -357,7 +360,8 @@ doloot() {	/* loot a container on the floor. */
 		    }
 
 		    You("carefully open the %s...", xname(cobj));
-		    if(cobj->otrapped) chest_trap(cobj, FINGER);
+		    if(cobj->otrapped && chest_trap(cobj, FINGER)) /* don't use obj if obj dies */
+		      continue;
 		    if(multi < 0) return 0; /* a paralysis trap */
 
 		    use_container(cobj, 0);
@@ -367,30 +371,27 @@ doloot() {	/* loot a container on the floor. */
 }
 
 static
-struct obj *current_container;	/* a local variable of use_container, to be
+struct obj NEARDATA *current_container;	/* a local variable of use_container, to be
 				used by its local procedures in/ck_container */
 #define Icebox (current_container->otyp == ICE_BOX)
 int baggone;	/* used in askchain so bag isn't used after explosion */
 
 #endif /* OVLB */
-#ifdef OVL0
+#ifdef OVL1
 
 void
 inc_cwt(cobj, obj)
 register struct obj *cobj, *obj;
 {
 	if (cobj->otyp == BAG_OF_HOLDING)
-		cobj->owt += (cobj->cursed?(obj->owt*2):(obj->owt/(cobj->blessed?4:2)) + 1);
+		cobj->owt += DELTA_CWT(cobj);
 	else	cobj->owt += obj->owt;
 }
 
-#endif /* OVL0 */
+#endif /* OVL1 */
 #ifdef OVLB
 
-#ifndef OVERLAY
-static 
-#endif
-int
+STATIC_PTR int
 in_container(obj)
 register struct obj *obj;
 {
@@ -466,10 +467,7 @@ register struct obj *obj;
 	return(1);
 }
 
-#ifndef OVERLAY
-static 
-#endif
-int
+STATIC_PTR int
 ck_container(obj)
 register struct obj *obj;
 {
@@ -479,31 +477,28 @@ register struct obj *obj;
 /* ck_bag() needs a formal argument to make the overlay/prototype mechanism
  * work right */
 /*ARGSUSED*/
-#ifndef OVERLAY
-static 
-#endif
-int
+STATIC_PTR int
 ck_bag(obj)
 struct obj *obj;
 {
 	return(!baggone);
 }
 
-#ifndef OVERLAY
-static 
-#endif
-int
+STATIC_PTR int
 out_container(obj)
 register struct obj *obj;
 {
-	register struct obj *otmp;
+	register struct obj *otmp, *ootmp;
 	register boolean near_capacity = (inv_weight() > -5);
 
 	if(inv_cnt() >= 52) {
 		pline("You have no room to hold anything else.");
 		return(0);
 	}
-	if(obj->otyp != LOADSTONE && inv_weight() + (int)obj->owt > 0) {
+	if(obj->otyp != LOADSTONE && inv_weight() + (int)obj->owt -
+	   (carried(current_container) ?
+		(current_container->otyp == BAG_OF_HOLDING ?
+		    (int)DELTA_CWT(current_container) : (int)obj->owt) : 0) > 0) {
 		char buf[BUFSZ];
 
 		Strcpy(buf, doname(obj));
@@ -528,31 +523,14 @@ register struct obj *obj;
 	if (Icebox) obj->age = monstermoves - obj->age;
 	/* simulated point of time */
 
-	(void) addinv(obj);
+	ootmp = addinv(obj);
 	if (near_capacity) You("have a little trouble removing");
-	prinv(obj);
+	prinv(ootmp);
 	return 0;
 }
 
-void
-get_all_from_box() {
-	register struct obj *otmp, *cobj, *ootmp, *nxobj;
-
-	for(otmp = invent; otmp; otmp = otmp->nobj) {
-	    cobj = otmp;
-	    if(Is_container(otmp)) {
-		current_container = otmp;
-		for(ootmp=fcobj,nxobj=(fcobj ? fcobj->nobj : 0); ootmp;
-			    ootmp=nxobj,nxobj=(ootmp ? ootmp->nobj : 0) )
-		    if(ootmp->cobj == cobj)
-			(void)out_container(ootmp);
-	    }
-	}
-	return;
-}
-
 /* for getobj: 0: allow cnt; #: allow all types; %: expect food */
-static const char frozen_food[] = { '0', '#', FOOD_SYM, 0 };
+static const char NEARDATA frozen_food[] = { '0', '#', FOOD_SYM, 0 };
 
 void
 use_container(obj, held)
@@ -644,26 +622,39 @@ explode_bag(obj)
 struct obj *obj;
 {
 	struct obj *otmp, *cobj;
+	boolean found = FALSE;
 
 	cobj = obj->cobj;
 	delete_contents(cobj);
 
 	for (otmp = invent; otmp; otmp = otmp->nobj)
-		if (otmp == cobj) break;
+		if (otmp == cobj) {
+			found = TRUE;
+			Your("%s blows apart!", xname(otmp));
+			useup(otmp);
+			break;
+		}
 
-	if (otmp) {
-		You("see your %s blow apart!", xname(otmp));
-		useup(otmp);
-		/*return(0);*/
-	} else	panic("explode_bag: bag not in invent.");
+	if (!found) {
+	    /* maybe the bag was on the floor */
+	    for (otmp=level.objects[u.ux][u.uy]; otmp; otmp=otmp->nexthere)
+		if (otmp == cobj) {
+			found = TRUE;
+			pline("The %s blows apart!", xname(otmp));
+			useupf(otmp);
+			break;
+		}
+	}
+
+	if (!found) panic("explode_bag: bag not found.");
 }
 
 void
 dec_cwt(cobj, obj)
 register struct obj *cobj, *obj;
 {
-	if (Is_mbag(cobj))
-		cobj->owt -= (cobj->cursed?(obj->owt*2):(obj->owt/(cobj->blessed?4:2)) + 1);
+	if (cobj->otyp == BAG_OF_HOLDING)
+		cobj->owt -= DELTA_CWT(cobj);
 	else	cobj->owt -= obj->owt;
 
 	if(cobj->owt < objects[cobj->otyp].oc_weight)

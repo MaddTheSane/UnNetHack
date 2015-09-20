@@ -5,6 +5,9 @@
 #ifndef OBJ_H
 #define OBJ_H
 
+/* #define obj obj_nh	/* uncomment for SCO UNIX, which has a conflicting
+			 * typedef for "obj" in <sys/types.h> */
+
 struct obj {
 	struct obj *nobj;
 	struct obj *nexthere;		/* for location lists */
@@ -92,7 +95,7 @@ struct obj {
 #define Is_mbag(otmp)	(otmp->otyp == BAG_OF_HOLDING || otmp->otyp == BAG_OF_TRICKS)
 
 #define is_sword(otmp)	(otmp->otyp >= SHORT_SWORD && otmp->otyp <= KATANA)
-#define bimanual(otmp)	(otmp->olet == WEAPON_SYM && objects[otmp->otyp].oc_bimanual)
+#define bimanual(otmp)	((otmp->olet == WEAPON_SYM || otmp->otyp == UNICORN_HORN) && objects[otmp->otyp].oc_bimanual)
 
 #define is_rustprone(otmp)	(objects[otmp->otyp].oc_material == METAL)
 #define is_corrodeable(otmp)	(objects[otmp->otyp].oc_material == COPPER)

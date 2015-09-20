@@ -6,15 +6,19 @@
    systems (e.g. MUNIX) the include files <termio.h> and <sgtty.h>
    define the same constants, and the C preprocessor complains. */
 
+#ifndef VMS
 /* block some unused #defines to avoid overloading some cpp's */
 #define MONATTK_H
 #define MONFLAG_H
 #include "hack.h"
 
-#if defined(BSD) || defined(ULTRIX) || defined(HPUX)
+#if defined(BSD) || defined(ULTRIX) || defined(HPUX) || defined(AIX_31)
 # ifdef HPUX
 #include	<bsdtty.h>
 # else
+#  if defined(AIX_31) && !defined(_ALL_SOURCE)
+#   define _ALL_SOURCE	/* causes struct winsize to be present */
+#  endif
 #include	<sgtty.h>
 # endif
 struct ltchars ltchars;
@@ -29,13 +33,13 @@ struct termio termio;
 
 void
 getioctls() {
-#if defined(BSD) || defined(ULTRIX) || defined(HPUX)
+#if defined(BSD) || defined(ULTRIX) || defined(HPUX) || defined(AIX_31)
 	(void) ioctl(fileno(stdin), (int) TIOCGLTC, (char *) &ltchars);
 	(void) ioctl(fileno(stdin), (int) TIOCSLTC, (char *) &ltchars0);
 #else
 	(void) ioctl(fileno(stdin), (int) TCGETA, &termio);
 #endif
-#if defined(TIOCGWINSZ) && (defined(BSD) || defined(ULTRIX))
+#if defined(TIOCGWINSZ) && (defined(BSD) || defined(ULTRIX) || defined(AIX_31))
 	{
 		/*
 		 * ttysize is found on Suns and BSD
@@ -60,7 +64,7 @@ getioctls() {
 
 void
 setioctls() {
-#if defined(BSD) || defined(ULTRIX) || defined(HPUX)
+#if defined(BSD) || defined(ULTRIX) || defined(HPUX) || defined(AIX_31)
 	(void) ioctl(fileno(stdin), (int) TIOCSLTC, (char *) &ltchars);
 #else
 	/* Now modified to run under Sys V R3.	- may have to be #ifdef'ed */
@@ -89,3 +93,4 @@ dosuspend() {
 	return(0);
 }
 #endif /* SUSPEND /**/
+#endif /*VMS*/

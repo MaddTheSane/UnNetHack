@@ -7,13 +7,11 @@
 #ifndef GLOBAL_H
 #define	GLOBAL_H
 
-#ifndef VMS
-# include <stdio.h>
-#endif
+#include <stdio.h>
 
 
 /* #define BETA		/* if a beta-test copy  [MRS] */
-#define VERSION "3.0i"  /* version number. */
+#define VERSION "3.0j"  /* version number. */
 
 /*
  * Files expected to exist in the playground directory.
@@ -82,7 +80,7 @@ typedef	xchar	boolean;		/* 0 or 1 */
  * prototypes for the ANSI compilers so people quit trying to fix the prototypes
  * to match the standard and thus lose the typechecking.
  */
-#if (defined(MSDOS) && !defined(TOS)) || defined (AMIGA) || defined(THINKC4)
+#if (defined(MSDOS) && !defined(TOS)) || defined (AMIGA) || defined(THINKC4) || defined(VAXC)
 # define CHAR_P char
 # define SCHAR_P schar
 # define UCHAR_P uchar
@@ -130,7 +128,6 @@ typedef	xchar	boolean;		/* 0 or 1 */
 
 #if defined(VMS) && !defined(VMSCONF_H)
 # include "vmsconf.h"
-# include <stdio.h>
 #endif
 
 #if defined(UNIX) && !defined(UNIXCONF_H)

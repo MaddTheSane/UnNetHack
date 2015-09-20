@@ -4,6 +4,10 @@
 
 #include	"hack.h"		/* for typedefs */
 
+#if defined(LATTICE) 				/* This is NOT */
+# define MACOS					/* a typo! */
+#endif
+
 static void NDECL(setgemprobs);
 static void FDECL(shuffle,(int,int,BOOLEAN_P));
 static boolean FDECL(interesting_to_discover,(int));
@@ -28,8 +32,8 @@ const char obj_symbols[] = {
 #endif
 	RING_SYM, GEM_SYM, 0 };
 
-int bases[sizeof(obj_symbols)] = DUMMY;
-static int disco[TOTAL_OBJS] = DUMMY;
+int NEARDATA bases[sizeof(obj_symbols)] = DUMMY;
+static int NEARDATA disco[TOTAL_OBJS] = DUMMY;
 
 int
 letindex(let) register char let; {
@@ -237,7 +241,7 @@ register int fd;
 #ifdef MACOS
 	char	*descr[TOTAL_OBJS];
 #endif
-	struct objclass *now = &objects[0];
+	const char *now = objects[0].oc_name; /* location of "strange object" */
 	bwrite(fd, (genericptr_t)&now, sizeof now);
 	bwrite(fd, (genericptr_t)bases, sizeof bases);
 	bwrite(fd, (genericptr_t)disco, sizeof disco);
@@ -269,8 +273,8 @@ register int fd;
 {
 	register int i;
 	unsigned int len;
-	struct objclass *then;
-	long differ;
+	char *then;	/* old location of "strange object" */
+	register int differ;	/*(ptrdiff_t)*/
 #ifdef MACOS
 	/* provides position-independent save & restore */
 	/* by giving each object a number, keep track of it */
@@ -301,30 +305,14 @@ register int fd;
 		objects[i].oc_descr = d[switches[i]].descr;
 	}
 #else
-# if !defined(MSDOS) && !defined(M_XENIX) && !defined(HPUX)
-	differ = (genericptr_t)&objects[0] - (genericptr_t)then;
-# else
-	differ = (long)&objects[0] - (long)then;
-# endif
+	differ = objects[0].oc_name - then;	/* note: expected to be 0 */
 #endif	/* MACOS */
 	for(i=0; i < TOTAL_OBJS; i++) {
 #ifndef MACOS
-		if (objects[i].oc_name) {
-# if !defined(MSDOS) && !defined(M_XENIX)
+		if (differ && objects[i].oc_name)
 			objects[i].oc_name += differ;
-# else
-			objects[i].oc_name =
-			    (const char *)((long)(objects[i].oc_name) + differ);
-# endif
-		}
-		if (objects[i].oc_descr) {
-# if !defined(MSDOS) && !defined(M_XENIX)
+		if (differ && objects[i].oc_descr)
 			objects[i].oc_descr += differ;
-# else
-			objects[i].oc_descr =
-			    (const char *)((long)(objects[i].oc_descr) + differ);
-# endif
-		}
 #endif /* MACOS */
 		if (objects[i].oc_uname) {
 			mread(fd, (genericptr_t) &len, sizeof len);

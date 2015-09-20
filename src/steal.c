@@ -4,7 +4,10 @@
 
 #include "hack.h"
 
+STATIC_DCL int NDECL(stealarm);
+
 #ifdef OVLB
+static const char * FDECL(equipname, (struct obj *));
 
 static const char *
 equipname(otmp)
@@ -63,10 +66,7 @@ register struct monst *mtmp;
 unsigned int stealoid;		/* object to be stolen */
 unsigned int stealmid;		/* monster doing the stealing */
 
-#ifndef OVERLAY
-static 
-#endif
-int
+STATIC_OVL int
 stealarm(){
 	register struct monst *mtmp;
 	register struct obj *otmp;
@@ -75,8 +75,10 @@ stealarm(){
 	  if(otmp->o_id == stealoid) {
 	    for(mtmp = fmon; mtmp; mtmp = mtmp->nmon)
 	      if(mtmp->m_id == stealmid) {
+		  if(otmp->unpaid) subfrombill(otmp);
 		  freeinv(otmp);
-		  pline("%s steals %s!", Blind ? "It" : Monnam(mtmp), doname(otmp));
+		  pline("%s steals %s!", Blind ? "It" : 
+					Monnam(mtmp), doname(otmp));
 		  mpickobj(mtmp,otmp);
 		  mtmp->mflee = 1;
 		  rloc(mtmp);
@@ -102,7 +104,11 @@ struct monst *mtmp;
 	/* the following is true if successful on first of two attacks. */
 	if(!monnear(mtmp, u.ux, u.uy)) return(0);
 
-	if(!invent){
+	if(!invent
+#ifdef POLYSELF
+		   || (inv_cnt() == 1 && uskin)
+#endif
+						){
 	    /* Not even a thousand men in armor can strip a naked man. */
 	    if(Blind)
 	      pline("Somebody tries to rob you, but finds nothing to steal.");
@@ -121,12 +127,24 @@ struct monst *mtmp;
 	}
 
 	tmp = 0;
-	for(otmp = invent; otmp; otmp = otmp->nobj) if(!uarm || otmp != uarmc)
-	    tmp += ((otmp->owornmask & (W_ARMOR | W_RING | W_AMUL | W_TOOL)) ? 5 : 1);
+	for(otmp = invent; otmp; otmp = otmp->nobj)
+	    if((!uarm || otmp != uarmc)
+#ifdef POLYSELF
+					&& otmp != uskin
+#endif
+							)
+		tmp += ((otmp->owornmask &
+			(W_ARMOR | W_RING | W_AMUL | W_TOOL)) ? 5 : 1);
 	tmp = rn2(tmp);
-	for(otmp = invent; otmp; otmp = otmp->nobj) if(!uarm || otmp != uarmc)
-  	    if((tmp -= ((otmp->owornmask & (W_ARMOR | W_RING | W_AMUL | W_TOOL)) ? 5 : 1))
-			< 0) break;
+	for(otmp = invent; otmp; otmp = otmp->nobj)
+	    if((!uarm || otmp != uarmc)
+#ifdef POLYSELF
+					&& otmp != uskin
+#endif
+							)
+		if((tmp -= ((otmp->owornmask &
+			(W_ARMOR | W_RING | W_AMUL | W_TOOL)) ? 5 : 1)) < 0)
+			break;
 	if(!otmp) {
 		impossible("Steal fails!");
 		return(0);

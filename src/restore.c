@@ -9,11 +9,20 @@
 #include "wseg.h"
 #endif
 
+static void FDECL(stuff_objs, (struct obj *));
+static void NDECL(find_lev_obj);
+#ifndef NO_SIGNAL
+static void NDECL(inven_inuse);
+#endif
+static struct obj * FDECL(restobjchn, (int,BOOLEAN_P));
+static struct monst * FDECL(restmonchn, (int,BOOLEAN_P));
+static void FDECL(restgenoinfo, (int));
+
 boolean restoring = FALSE;
 #ifdef TUTTI_FRUTTI
-static struct fruit *oldfruit;
+static struct fruit NEARDATA *oldfruit;
 #endif
-static long omoves;
+static long NEARDATA omoves;
 
 /*
  * "stuff" objects back into containers (relink the fcobj list).
@@ -143,16 +152,12 @@ boolean ghostly;
 	register struct monst *mtmp, *mtmp2;
 	register struct monst *first = 0;
 	int xl;
-
 	struct permonst *monbegin;
-	off_t differ;
+	boolean moved;
 
+	/* get the original base address */
 	mread(fd, (genericptr_t)&monbegin, sizeof(monbegin));
-#if !defined(MSDOS) && !defined(M_XENIX) && !defined(THINKC4) && !defined(HPUX)
-	differ = (genericptr_t)(&mons[0]) - (genericptr_t)(monbegin);
-#else
-	differ = (long)(&mons[0]) - (long)(monbegin);
-#endif
+	moved = (monbegin != mons);
 
 #if defined(LINT) || defined(__GNULINT__)
 	/* suppress "used before set" warning from lint */
@@ -167,24 +172,10 @@ boolean ghostly;
 		mread(fd, (genericptr_t) mtmp, (unsigned) xl + sizeof(struct monst));
 		if(!mtmp->m_id)
 			mtmp->m_id = flags.ident++;
-#if !defined(MSDOS) && !defined(M_XENIX) && !defined(THINKC4) && !defined(HPUX)
-		/* ANSI type for differ is ptrdiff_t --
-		 * long may be wrong for segmented architecture --
-		 * may be better to cast pointers to (struct permonst *)
-		 * rather than (genericptr_t)
-		 * this code handles save file -- so any bug should glow
-		 * probably best not to keep lint from complaining
-		 */
-/*#ifdef LINT	/* possible compiler/hardware dependency - */
-/*		if (differ) mtmp->data = NULL;*/
-/*#else*/
-		mtmp->data = (struct permonst *)
-			((genericptr_t)mtmp->data + differ);
-/*#endif	/*LINT*/
-#else
-		mtmp->data = (struct permonst *)
-			((long) mtmp->data + differ);
-#endif
+		if (moved && mtmp->data) {
+			int offset = mtmp->data - monbegin;	/*(ptrdiff_t)*/
+			mtmp->data = mons + offset;  /* new permonst location */
+		}
 		if(mtmp->minvent)
 			mtmp->minvent = restobjchn(fd, ghostly);
 		mtmp2 = mtmp;
@@ -218,11 +209,10 @@ register int fd;
 #ifdef TUTTI_FRUTTI
 	struct fruit *fruit;
 #endif
-#ifdef MSDOS
 	struct flag oldflags;
 
-	oldflags = flags;	/* Save flags set in the config file */
-#endif
+	oldflags = flags;
+
 #ifdef ZEROCOMP
 	minit();
 #endif
@@ -249,20 +239,22 @@ register int fd;
 		return(0);
 	    }
 	mread(fd, (genericptr_t) &flags, sizeof(struct flag));
-	/* Some config file OPTIONS take precedence over those in save file.
+	/* Some config file and command line OPTIONS take precedence over
+	 * those in save file.
 	 */
-#ifdef MSDOS
-#ifdef DGK
+	flags.DECgraphics = oldflags.DECgraphics;
+	flags.IBMgraphics = oldflags.IBMgraphics;
+#if defined(MSDOS) && defined(DGK)
 	flags.rawio = oldflags.rawio;
-#ifdef DECRAINBOW
-	flags.DECRainbow = oldflags.DECRainbow;
-#endif /* DECRAINBOW */
 	flags.IBMBIOS = oldflags.IBMBIOS;
 #endif
 #ifdef TEXTCOLOR
 	flags.use_color = oldflags.use_color;
 #endif
-#endif /* MSDOS */
+	/* these come from the current environment; ignore saved values */
+	flags.echo = oldflags.echo;
+	flags.cbreak = oldflags.cbreak;
+
 	mread(fd, (genericptr_t) &dlevel, sizeof dlevel);
 	mread(fd, (genericptr_t) &maxdlevel, sizeof maxdlevel);
 	mread(fd, (genericptr_t) &moves, sizeof moves);
@@ -758,14 +750,20 @@ boolean ghostly;
 	  for(mtmp = fmon; mtmp; mtmp = mtmp2) {
 
 		mtmp2 = mtmp->nmon;
-		if(mtmp->data->geno & G_GENOD) {
-#ifdef KOPS
-			allow_kops = FALSE;
-#endif
-			mondead(mtmp);
-#ifdef KOPS
-			allow_kops = TRUE;
-#endif
+		if((mtmp->data->geno&G_GENOD) && !(mtmp->data->geno&G_UNIQ)) {
+			/* mondead() would try to link the monster's objects
+			 * into fobj and the appropriate nexthere chain.
+			 * unfortunately, such things will not have sane
+			 * values until after find_lev_obj() well below
+			 * here, so we'd go chasing random pointers if we
+			 * tried that.  we could save the monster's objects
+			 * in another chain and insert them in the level
+			 * later, but that's a lot of work for very little
+			 * gain.  hence, just throw the objects away via
+			 * mongone() and pretend the monster wandered off
+			 * somewhere private before the genocide.
+			 */
+			mongone(mtmp);
 			continue;
 		}
 
@@ -869,16 +867,31 @@ boolean ghostly;
 		}
 	}
 #endif
+	if(ghostly && lev > medusa_level
+#ifdef STRONGHOLD
+				&& lev < stronghold_level
+#else
+				&& !Inhell
+#endif
+				&& xdnstair == 0) {
+		coord cc;
+
+		mazexy(&cc);
+		xdnstair = cc.x;
+		ydnstair = cc.y;
+		levl[cc.x][cc.y].typ = STAIRS;
+	}
 }
 
 #ifdef ZEROCOMP
 #define RLESC '\0' 	/* Leading character for run of RLESC's */
 
-static unsigned char inbuf[BUFSZ];
-static unsigned short inbufp = 0;
-static unsigned short inbufsz = 0;
-static short inrunlength = -1;
-static int mreadfd;
+static unsigned char NEARDATA inbuf[BUFSZ];
+static unsigned short NEARDATA inbufp = 0;
+static unsigned short NEARDATA inbufsz = 0;
+static short NEARDATA inrunlength = -1;
+static int NEARDATA mreadfd;
+static int NDECL(mgetc);
 
 static int
 mgetc()

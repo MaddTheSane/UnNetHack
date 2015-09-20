@@ -16,9 +16,9 @@
 
 #include "edog.h"
 
-static int FDECL(domonnoise,(struct monst *));
-
 #ifdef OVLB
+
+static int FDECL(domonnoise,(struct monst *));
 
 void
 verbalize(str)
@@ -115,7 +115,7 @@ dosounds()
 			You("hear the tones of courtly conversation.");
 			break;
 		    case 1:
-			You("hear a sceptre being pounded in judgement.");
+			You("hear a sceptre being pounded in judgment.");
 			break;
 		    case 2:
 			pline("Someone just shouted \"Off with %s head!\"",
@@ -247,6 +247,7 @@ void
 growl(mtmp)
 register struct monst *mtmp;
 {
+    if (mtmp->msleep || !mtmp->mcanmove) return;
     /* presumably nearness and soundok checks have already been made */
     switch (mtmp->data->msound) {
 	case MS_SILENT:
@@ -282,6 +283,7 @@ yelp(mtmp)
 register struct monst *mtmp;
 /* the sounds of mistreated pets */
 {
+    if (mtmp->msleep || !mtmp->mcanmove) return;
     /* presumably nearness and soundok checks have already been made */
     switch (mtmp->data->msound) {
 	case MS_MEW:
@@ -308,6 +310,7 @@ whimper(mtmp)
 register struct monst *mtmp;
 /* the sounds of distressed pets */
 {
+    if (mtmp->msleep || !mtmp->mcanmove) return;
     /* presumably nearness and soundok checks have already been made */
     switch (mtmp->data->msound) {
 	case MS_MEW:
@@ -353,7 +356,7 @@ static int
 domonnoise(mtmp)
 register struct monst *mtmp;
 {
-    /* presumably nearness checks have already been made */
+    /* presumably nearness and sleep checks have already been made */
     if (!flags.soundok) return(0);
     switch (mtmp->data->msound) {
 #ifdef ORACLE

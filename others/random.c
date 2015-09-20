@@ -23,15 +23,20 @@
  *	- giving srandom() type void instead of allowing it to default to int
  *	- making the first return in initstate() return a value consistent
  *	with its type (instead of no value)
+ *	- ANSI function prototyping in extern.h - therefore include hack.h
+ *	instead of stdio.h and remove separate declaration of random() from
+ *	the beginning of function srandom
+ *	- moving sccsid after hack.h to allow precompiled headers, which
+ *	means the defined()s would be ok again...
  */
+
+#include "hack.h"
 
 #ifdef LIBC_SCCS
 # ifndef lint
 static char sccsid[] = "@(#)random.c	5.5 (Berkeley) 7/6/88";
 # endif
 #endif /* LIBC_SCCS and not lint */
-
-#include <stdio.h>
 
 /*
  * random.c:
@@ -200,7 +205,6 @@ srandom( x )
     unsigned		x;
 {
     	register  int		i, j;
-	long random();
 
 	if(  rand_type  ==  TYPE_0  )  {
 	    state[ 0 ] = x;

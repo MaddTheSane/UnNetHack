@@ -5,11 +5,11 @@
 #include "hack.h"
 
 #ifdef POLYSELF
+#ifdef OVLB
 static void NDECL(break_armor);
 static void FDECL(drop_weapon,(int));
 static void NDECL(skinback);
 static void NDECL(uunstick);
-#ifdef OVLB
 static boolean sticky;
 #endif /* OVLB */
 #endif
@@ -123,8 +123,14 @@ newname:	more();
 		}
 		(void)strcat(SAVEF, ".sav");
 # else
+#  ifdef MACOS
+		strncpy(SAVEF, plname, (FILENAME - 2));  /* .e */
+		SAVEF[(FILENAME - 2)] = '\0';
+		regularize(SAVEF);
+#  else
 		Sprintf(SAVEF, "save/%d%s", getuid(), plname);
 		regularize(SAVEF+5);		/* avoid . or / in name */
+#  endif
 # endif
 #endif
 #ifdef WIZARD
@@ -135,6 +141,8 @@ newname:	more();
 	skinback();
 	find_ac();
 	if (sticky) uunstick();
+	if(is_pool(u.ux,u.uy) && !Levitation && !u.ustuck && !Wwalking)
+		drown();
 #endif
 }
 
@@ -326,6 +334,9 @@ polymon(mntmp)	/* returns 1 if polymorph successful */
 		pline("Use the command #sit to lay an egg.");
 	}
 	find_ac();
+	if(is_pool(u.ux,u.uy) && !Levitation && !u.ustuck && !Wwalking
+			&& !is_flyer(uasmon) && !is_swimmer(uasmon))
+		drown();
 	return(1);
 }
 
@@ -450,11 +461,17 @@ rehumanize()
 	prme();
 	flags.botl = 1;
 	find_ac();
+	if(is_pool(u.ux,u.uy) && !Levitation && !u.ustuck && !Wwalking)
+		drown();
 }
 
 int
 dobreathe() {
-	if(!getdir(1)) return(0);
+	if (Strangled) {
+	    You("can't breathe.  Sorry.");
+	    return(0);
+	}
+	if (!getdir(1)) return(0);
 	if (rn2(4))
 	    You("produce a loud and noxious belch.");
 	else {
@@ -629,7 +646,7 @@ doconfuse()
 #ifdef MACOS
 			char mac_tbuf[80];
 			if(!flags.silent) SysBeep(1);
-			sprintf(mac_tbuf, "Really confuse %s?", mon_nam(mtmp));
+			Sprintf(mac_tbuf, "Really confuse %s?", mon_nam(mtmp));
 			if(UseMacAlertText(128, mac_tbuf) != 1) continue;
 #else
 			pline("Really confuse %s? ", mon_nam(mtmp));
@@ -705,6 +722,8 @@ skinback()
 }
 #endif
 
+#endif /* OVLB */
+#ifdef OVL1
 const char *
 body_part(part)
 int part;
@@ -713,33 +732,33 @@ int part;
 	 * plus the trailing null, after pluralizing (since sometimes a
 	 * buffer is made a fixed size and must be able to hold it)
 	 */
-	static const char *humanoid_parts[] = { "arm", "eye", "face", "finger",
+	static const char NEARDATA *humanoid_parts[] = { "arm", "eye", "face", "finger",
 		"fingertip", "foot", "hand", "handed", "head", "leg",
                 "light headed", "neck", "spine", "toe" };
 #ifdef POLYSELF
-	static const char *jelly_parts[] = { "pseudopod", "dark spot", "front",
+	static const char NEARDATA *jelly_parts[] = { "pseudopod", "dark spot", "front",
 		"pseudopod extension", "pseudopod extremity",
 		"pseudopod root", "grasp", "grasped", "cerebral area",
 		"lower pseudopod", "viscous", "middle", "surface",
 		"pseudopod extremity" },
-	*animal_parts[] = { "forelimb", "eye", "face", "foreclaw", "claw tip",
+	NEARDATA *animal_parts[] = { "forelimb", "eye", "face", "foreclaw", "claw tip",
 		"rear claw", "foreclaw", "clawed", "head", "rear limb",
 		"light headed", "neck", "spine", "rear claw tip" },
-	*horse_parts[] = { "forelimb", "eye", "face", "forehoof", "hoof tip",
+	NEARDATA *horse_parts[] = { "forelimb", "eye", "face", "forehoof", "hoof tip",
 		"rear hoof", "foreclaw", "hooved", "head", "rear limb",
 		"light headed", "neck", "backbone", "rear hoof tip" },
-	*sphere_parts[] = { "appendage", "optic nerve", "body", "tentacle",
+	NEARDATA *sphere_parts[] = { "appendage", "optic nerve", "body", "tentacle",
 		"tentacle tip", "lower appendage", "tentacle", "tentacled",
 		"body", "lower tentacle", "rotational", "equator", "body",
 		"lower tentacle tip" },
-	*fungus_parts[] = { "mycelium", "visual area", "front", "hypha",
+	NEARDATA *fungus_parts[] = { "mycelium", "visual area", "front", "hypha",
 		"hypha", "root", "strand", "stranded", "cap area",
 		"rhizome", "sporulated", "stalk", "root", "rhizome tip" },
-	*vortex_parts[] = { "region", "eye", "front", "minor current",
+	NEARDATA *vortex_parts[] = { "region", "eye", "front", "minor current",
 		"minor current", "lower current", "swirl", "swirled",
 		"central core", "lower current", "addled", "center",
 		"currents", "edge" },
-	*snake_parts[] = { "vestigial limb", "eye", "face", "large scale",
+	NEARDATA *snake_parts[] = { "vestigial limb", "eye", "face", "large scale",
 		"large scale tip", "rear region", "scale gap", "scale gapped",
 		"head", "rear region", "light headed", "neck", "length",
 		"rear scale" };
@@ -761,7 +780,7 @@ int part;
 #endif
 }
 
-#endif /* OVLB */
+#endif /* OVL1 */
 #ifdef OVL0
 
 int

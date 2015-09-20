@@ -19,7 +19,7 @@ static char cmd[60], proxy[20];
 static void NDECL(compress_bones);
 #endif
 static boolean FDECL(no_bones_level, (int));
-void FDECL(resetobjs,(struct obj *));
+static void FDECL(resetobjs,(struct obj *,BOOLEAN_P));
 #ifdef TUTTI_FRUTTI
 static void FDECL(goodfruit, (int));
 #endif
@@ -78,42 +78,50 @@ int id;
 }
 #endif
 
-void
-resetobjs(ochain)
+static void
+resetobjs(ochain,restore)
 struct obj *ochain;
+boolean restore;
 {
 	struct obj *otmp;
 
 	for (otmp = ochain; otmp; otmp = otmp->nobj) {
-		otmp->o_id = 0;
 		if (((otmp->otyp != CORPSE && otmp->otyp != STATUE)
 			|| otmp->corpsenm < PM_ARCHEOLOGIST)
 #ifdef NAMED_ITEMS
-			&& !(is_artifact(otmp) && !exist_artifact(otmp,ONAME(otmp)))
+			&& (!is_artifact(otmp) ||
+			    (exist_artifact(otmp,ONAME(otmp)) && restore))
 #endif
-		)
+		) {
 			otmp->onamelth = 0;
+			*ONAME(otmp) = '\0';
+		}
 #ifdef NAMED_ITEMS
-		else if (is_artifact(otmp))
+		else if (is_artifact(otmp) && restore)
 			artifact_exists(otmp,ONAME(otmp),TRUE);
 #endif
-		if(objects[otmp->otyp].oc_uses_known) otmp->known = 0;
+		if (!restore) {
+			/* resetting the o_id's after getlev has carefully
+			 * created proper new ones via restobjchn is a Bad
+			 * Idea */
+			otmp->o_id = 0;
+			if(objects[otmp->otyp].oc_uses_known) otmp->known = 0;
+			otmp->dknown = otmp->bknown = 0;
+			otmp->invlet = 0;
 #ifdef TUTTI_FRUTTI
-		if(otmp->otyp == SLIME_MOLD) goodfruit(otmp->spe);
+			if(otmp->otyp == SLIME_MOLD) goodfruit(otmp->spe);
 #endif
-		otmp->dknown = otmp->bknown = 0;
-		otmp->invlet = 0;
 #ifdef MAIL
-		if (otmp->otyp == SCR_MAIL)
-			otmp->spe = 1;
+			if (otmp->otyp == SCR_MAIL) otmp->spe = 1;
 #endif
 #ifdef POLYSELF
-		if (otmp->otyp == EGG)
-			otmp->spe = 0;
+			if (otmp->otyp == EGG) otmp->spe = 0;
 #endif
-		if(otmp->otyp == AMULET_OF_YENDOR && !otmp->spe) {
-			otmp->spe = -1;      /* no longer the actual amulet */
-			curse(otmp);
+			if(otmp->otyp == AMULET_OF_YENDOR && !otmp->spe) {
+				otmp->spe = -1;
+				/* no longer the actual amulet */
+				curse(otmp);
+			}
 		}
 	}			
 }
@@ -212,13 +220,14 @@ savebones(){
 		atl(u.ux, u.uy, mtmp->data->mlet);
 		Your("body rises from the dead as %s...",
 			an(mons[u.ugrave_arise].mname));
+		more();
 	}
 	mtmp->m_lev = (u.ulevel ? u.ulevel : 1);
 	mtmp->mhp = mtmp->mhpmax = u.uhpmax;
 	mtmp->msleep = 1;
 	if(u.ugold) mkgold(u.ugold, u.ux, u.uy);
 	for(mtmp = fmon; mtmp; mtmp = mtmp->nmon){
-		resetobjs(mtmp->minvent);
+		resetobjs(mtmp->minvent,FALSE);
 		mtmp->m_id = 0;
 		mtmp->mlstmv = 0L;
 		if(mtmp->mtame) mtmp->mtame = mtmp->mpeaceful = 0;
@@ -227,8 +236,9 @@ savebones(){
 	for(ttmp = ftrap; ttmp; ttmp = ttmp->ntrap)
 		ttmp->tseen = 0;
 
-	resetobjs(fobj);
-	resetobjs(fcobj);   /* let's (not) forget about these - KCD, 10/21/89 */
+	resetobjs(fobj,FALSE);
+	/* let's (not) forget about these - KCD, 10/21/89 */
+	resetobjs(fcobj,FALSE);
 
 	for(x=0; x<COLNO; x++) for(y=0; y<ROWNO; y++)
 		levl[x][y].seen = levl[x][y].new = levl[x][y].scrsym = 0;
@@ -246,7 +256,7 @@ savebones(){
 		
 		t = (term_info *)GetWRefCon(HackWindow);
 		(void)GetVol(&fileName,&oldvolume);
-		(void)SetVol(0L, t->system.sysVRefNum);
+		(void)SetVol(0L, t->recordVRefNum);
 		fileName[0] = (uchar)strlen(bones);
 		Strcpy((char *)&fileName[1],bones);
 		
@@ -300,6 +310,34 @@ savebones(){
 	bflush(fd);
 #endif
 	(void) close(fd);
+#if defined(VMS) && !defined(SECURE)
+	/*
+	   Re-protect bones file with world:read+write+execute+delete access.
+	   umask() doesn't seem very reliable; also, vaxcrtl won't let us set
+	   delete access without write access, which is what's really wanted.
+	 */
+	(void) chmod(bones, FCMASK | 007);  /* allow other users full access */
+#endif
+#ifdef MACOS
+	{
+		FInfo	fndrInfo;
+		Str255	name;
+		term_info	*t;
+		short	oldVol, error;
+		
+		t = (term_info *)GetWRefCon(HackWindow);
+		GetVol(name, &oldVol);
+		SetVol(0L, t->recordVRefNum);  
+		Strcpy((char *)name, bones);
+		CtoPstr((char *)name);
+		error = GetFInfo(name, (short)0, &fndrInfo);
+		fndrInfo.fdCreator = CREATOR;
+		fndrInfo.fdType = BONES_TYPE;
+		if (error == noErr)
+			SetFInfo(name, (short)0, &fndrInfo);
+		SetVol(0L, oldVol);
+	}
+#endif /* MACOS */
 #ifdef COMPRESS
 	compress_bones();
 #endif
@@ -309,7 +347,14 @@ int
 getbones() {
 	register int fd;
 	register int ok;
-
+#ifdef MACOS
+	Str255	name;
+	short	oldVol;
+	term_info *t;
+	extern WindowPtr	HackWindow;
+	
+	t = (term_info *)GetWRefCon(HackWindow);
+#endif
 #ifdef EXPLORE_MODE
 	if(discover)		/* save bones files for real games */
 		return(0);
@@ -322,6 +367,10 @@ getbones() {
 		) return(0);
 	if(no_bones_level(dlevel)) return(0);
 	name_file(bones, dlevel);
+#ifdef MACOS
+	GetVol(name, &oldVol);
+	SetVol(0L, t->recordVRefNum);
+#endif
 #ifdef COMPRESS
 	if((fd = open(bones, OMASK)) >= 0) goto gotbones;
 	Strcpy(proxy, bones);
@@ -339,7 +388,15 @@ getbones() {
 	    (void) system(cmd);
 	}
 #endif
-	if((fd = open(bones, OMASK)) < 0) return(0);
+	if((fd = open(bones, OMASK)) < 0) {
+#ifdef MACOS
+		SetVol(0L, oldVol);
+#endif
+		return(0);
+	}
+#ifdef MACOS
+	SetVol(0L, oldVol);
+#endif
 #ifdef COMPRESS
 gotbones:
 #endif
@@ -368,9 +425,9 @@ gotbones:
 		register struct monst *mtmp;
 
 		for(mtmp = fmon; mtmp; mtmp = mtmp->nmon)
-			resetobjs(mtmp->minvent);
-		resetobjs(fobj);
-		resetobjs(fcobj);
+			resetobjs(mtmp->minvent,TRUE);
+		resetobjs(fobj,TRUE);
+		resetobjs(fcobj,TRUE);
 	}
 #endif
 #ifdef WIZARD
@@ -384,10 +441,20 @@ gotbones:
 		}
 	}
 #endif
+#ifdef MACOS
+	GetVol(name, &oldVol);
+	SetVol(0L, t->recordVRefNum);
+#endif
 	if(unlink(bones) < 0){
 		pline("Cannot unlink %s.", bones);
+#ifdef MACOS
+		SetVol(0L, oldVol);
+#endif
 		return(0);
 	}
+#ifdef MACOS
+	SetVol(0L, oldVol);
+#endif
 	return(ok);
 }
 

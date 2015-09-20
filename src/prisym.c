@@ -8,7 +8,7 @@
 #include "wseg.h"
 #include "lev.h"
 
-OSTATIC void FDECL(pwseg, (struct wseg *));
+STATIC_DCL void FDECL(pwseg, (struct wseg *));
 #endif
 
 #ifdef OVL0
@@ -24,7 +24,15 @@ char ch;
 		impossible("atl(%d,%d,%c)",x,y,ch);
 		return;
 	}
-	if(crm->seen && crm->scrsym == ch) return;
+	if(crm->seen && crm->scrsym == ch
+#ifdef TEXTCOLOR
+	/* Force update if color used.  Otherwise objects with
+	 * same screen symbols but different colors show up
+	 * in wrong color in certain situations.
+	 */
+	   && !flags.use_color
+#endif
+	  ) return;
 	/* crm->scrsym = (uchar) ch; */
 	/* wrong if characters are signed but uchar is larger than char,
 	 * and ch, when passed, was greater than 127.
@@ -66,9 +74,9 @@ schar prevx=0, prevy=0;
 uchar let;
 uchar col;
 #else
-static schar prevx, prevy;
-static uchar let;
-static uchar col;
+static schar NEARDATA prevx, NEARDATA prevy;
+static uchar NEARDATA let;
+static uchar NEARDATA col;
 #endif
 
 	switch ((int)x) {
@@ -115,11 +123,11 @@ coord tc[COLNO];	/* but watch reflecting beams! */
 uchar col;
 # endif
 #else
-static uchar let;
-static xchar cnt;
-static coord tc[COLNO];	/* but watch reflecting beams! */
+static uchar NEARDATA let;
+static xchar NEARDATA cnt;
+static coord NEARDATA tc[COLNO];	/* but watch reflecting beams! */
 # ifdef TEXTCOLOR
-static uchar col;
+static uchar NEARDATA col;
 # endif
 #endif
 register int xx,yy;
@@ -573,7 +581,7 @@ register struct obj *obj;
 }
 
 #ifdef WORM
-XSTATIC void
+STATIC_OVL void
 pwseg(wtmp)
 register struct wseg *wtmp;
 {

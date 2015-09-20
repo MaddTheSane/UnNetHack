@@ -9,7 +9,7 @@
 
 
 
-#define NEED_VARARGS
+#define NEED_VARARGS /* Uses ... */	/* comment line for pre-compiled headers */
 #define PANIC_C
 #include	"config.h"
 

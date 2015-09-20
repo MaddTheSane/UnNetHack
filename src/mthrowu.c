@@ -4,9 +4,9 @@
 
 #include	"hack.h"
 
-OSTATIC int FDECL(movedist,(int,int,int,int));
-static void FDECL(drop_throw,(struct obj *,BOOLEAN_P,int,int));
-OSTATIC void FDECL(m_throw,(int,int,int,int,int,struct obj *));
+STATIC_DCL int FDECL(movedist,(int,int,int,int));
+STATIC_DCL void FDECL(drop_throw,(struct obj *,BOOLEAN_P,int,int));
+STATIC_DCL void FDECL(m_throw,(struct monst *,int,int,int,int,int,struct obj *));
 
 #define URETREATING(x,y) (movedist(u.ux,u.uy,x,y) > movedist(u.ux0,u.uy0,x,y))
 
@@ -14,13 +14,14 @@ boolean FDECL(lined_up, (struct monst *));
 
 #ifndef OVLB
 
-OSTATIC const char *breathwep[];
+STATIC_DCL const char *breathwep[];
 
 #else /* OVLB */
 
-schar	tbx = 0, tby = 0;	/* used for direction of throw, buzz, etc. */
+schar NEARDATA tbx = 0, NEARDATA tby = 0;
+	/* used for direction of throw, buzz, etc. */
 
-XSTATIC const char *breathwep[] = {	"fragments",
+STATIC_OVL const char NEARDATA *breathwep[] = {    "fragments",
 				"fire",
 				"sleep gas",
 				"frost",
@@ -70,7 +71,8 @@ thitu(tlev, dam, obj, name)	/* u is hit by sth, but not a monster */
 /* Be sure this corresponds with what happens to player-thrown objects in
  * dothrow.c (for consistency). --KAA
  */
-static void
+
+STATIC_OVL void
 drop_throw(obj, ohit, x, y)
 register struct obj *obj;
 boolean ohit;
@@ -93,8 +95,12 @@ int x,y;
 	} else free((genericptr_t)obj);
 }
 
-XSTATIC void
-m_throw(x, y, dx, dy, range, obj)
+#endif /* OVLB */
+#ifdef OVL1
+
+STATIC_OVL void
+m_throw(mon, x, y, dx, dy, range, obj)
+	register struct monst *mon;
 	register int x,y,dx,dy,range;		/* direction and range */
 	register struct obj *obj;
 {
@@ -114,11 +120,27 @@ m_throw(x, y, dx, dy, range, obj)
 	 * after obj.
 	 */
 	obj->nobj = singleobj->nobj;
+	/* Get rid of object.  This cannot be done later on; what if the
+	 * player dies before then, leaving the monster with 0 daggers?
+	 * (This caused the infamous 2^32-1 orcish dagger bug).
+	 */
+	if (!obj->quan) {
+		if(obj->olet == VENOM_SYM) {
+			/* venom is not in the monster's inventory chain */
+			free((genericptr_t) obj);
+		} else {
+			m_useup(mon, obj);
+		}
+	}
 
+	/* Note: drop_throw may destroy singleobj.  Since obj must be destroyed
+	 * early to avoid the dagger bug, anyone who modifies this code should
+	 * be careful not to use either one after it's been freed.
+	 */
 	if(sym) {
 		tmp_at(-1, sym);	/* open call */
 #ifdef TEXTCOLOR
-		tmp_at(-3, (int)objects[obj->otyp].oc_color);
+		tmp_at(-3, (int)objects[singleobj->otyp].oc_color);
 #else
 		tmp_at(-3, (int)AT_OBJ);
 #endif
@@ -132,7 +154,7 @@ m_throw(x, y, dx, dy, range, obj)
 		if(MON_AT(bhitpos.x, bhitpos.y)) {
 		    mtmp = m_at(bhitpos.x,bhitpos.y);
 
-		    if(mtmp->data->ac + 8 + obj->spe <= rnd(20)) {
+		    if(mtmp->data->ac + 8 + singleobj->spe <= rnd(20)) {
 			if (!vis) pline("It is missed.");
 			else miss(distant_name(singleobj,xname), mtmp);
 			if (!range) { /* Last position; object drops */
@@ -140,14 +162,14 @@ m_throw(x, y, dx, dy, range, obj)
 			    break;
 			}
 		    } else {
-			damage = dmgval(obj, mtmp->data);
+			damage = dmgval(singleobj, mtmp->data);
 			if (damage < 1) damage = 1;
-			if (obj->otyp==ACID_VENOM && resists_acid(mtmp->data))
+			if (singleobj->otyp==ACID_VENOM && resists_acid(mtmp->data))
 			    damage = 0;
 			if (!vis) pline("It is hit%s", exclam(damage));
 			else hit(distant_name(singleobj,xname),
 							mtmp,exclam(damage));
-			if (obj->opoisoned) {
+			if (singleobj->opoisoned) {
 			    if (resists_poison(mtmp->data)) {
 				if (vis)
 				  pline("The poison doesn't seem to affect %s.",
@@ -161,7 +183,7 @@ m_throw(x, y, dx, dy, range, obj)
 				}
 			    }
 			}
-			if (obj->otyp==SILVER_ARROW && (is_were(mtmp->data)
+			if (singleobj->otyp==SILVER_ARROW && (is_were(mtmp->data)
 				|| is_demon(mtmp->data)
 				|| mtmp->data->mlet == S_VAMPIRE
 				|| (mtmp->data->mlet==S_IMP
@@ -171,7 +193,7 @@ m_throw(x, y, dx, dy, range, obj)
 			    else pline("Its flesh is seared!");
 			    damage += rnd(20);
 			}
-			if (obj->otyp==ACID_VENOM && cansee(mtmp->mx,mtmp->my)){
+			if (singleobj->otyp==ACID_VENOM && cansee(mtmp->mx,mtmp->my)){
 			    if (resists_acid(mtmp->data)) {
 				pline("%s is unaffected.", vis ? Monnam(mtmp)
 					: "It");
@@ -189,8 +211,8 @@ m_throw(x, y, dx, dy, range, obj)
 			    mondied(mtmp);
 			}
 
-			if((obj->otyp == CREAM_PIE) ||
-			   (obj->otyp == BLINDING_VENOM)) {
+			if((singleobj->otyp == CREAM_PIE) ||
+			   (singleobj->otyp == BLINDING_VENOM)) {
 			    if (vis)
 				pline("%s is blinded by the %s.",
 				      Monnam(mtmp), xname(singleobj));
@@ -210,26 +232,26 @@ m_throw(x, y, dx, dy, range, obj)
 		if (bhitpos.x == u.ux && bhitpos.y == u.uy) {
 			if (multi) nomul(0);
 
-			switch(obj->otyp) {
+			switch(singleobj->otyp) {
 			    int dam;
 			    case CREAM_PIE:
 			    case BLINDING_VENOM:
 				hitu = thitu(8, 0, singleobj, xname(singleobj));
 				break;
 			    default:
-				dam = dmgval(obj, uasmon);
+				dam = dmgval(singleobj, uasmon);
 				if (dam < 1) dam = 1;
-				hitu = thitu(8+obj->spe, dam, singleobj,
+				hitu = thitu(8+singleobj->spe, dam, singleobj,
 					xname(singleobj));
 			}
-			if (hitu && obj->opoisoned)
+			if (hitu && singleobj->opoisoned)
 			    /* it's safe to call xname twice because it's the
 			       same object both times... */
 			    poisoned(xname(singleobj), A_STR, xname(singleobj), 10);
-			if(hitu && (obj->otyp == CREAM_PIE ||
-				     obj->otyp == BLINDING_VENOM)) {
+			if(hitu && (singleobj->otyp == CREAM_PIE ||
+				     singleobj->otyp == BLINDING_VENOM)) {
 			    blindinc = rnd(25);
-			    if(obj->otyp == CREAM_PIE) {
+			    if(singleobj->otyp == CREAM_PIE) {
 				if(!Blind) pline("Yecch!  You've been creamed.");
 				else	pline("There's something sticky all over your %s.", body_part(FACE));
 			    } else {	/* venom in the eyes */
@@ -269,6 +291,9 @@ m_throw(x, y, dx, dy, range, obj)
 		make_blinded(Blinded + blindinc,FALSE);
 	}
 }
+
+#endif /* OVL1 */
+#ifdef OVLB
 
 /* Remove an item from the monster's inventory.
  */
@@ -322,7 +347,7 @@ register struct monst *mtmp;
 		if(!URETREATING(x,y) ||
 		   !rn2(BOLT_LIM-movedist(x,mtmp->mux,y,mtmp->muy)))
 		{
-		    int savequan = otmp->quan;
+		    unsigned savequan = otmp->quan;
 		    const char *verb = "throws";
 
 		    if (otmp->otyp == ARROW
@@ -335,7 +360,7 @@ register struct monst *mtmp;
 		    if (canseemon(mtmp))
 			pline("%s %s %s!", Monnam(mtmp), verb, an(xname(otmp)));
 		    otmp->quan = savequan;
-		    m_throw(mtmp->mx, mtmp->my, sgn(tbx), sgn(tby), 
+		    m_throw(mtmp, mtmp->mx, mtmp->my, sgn(tbx), sgn(tby), 
 			movedist(mtmp->mx,mtmp->mux,mtmp->my,mtmp->muy), otmp);
 		    if (!otmp->quan) m_useup(mtmp, otmp);
 		    nomul(0);
@@ -378,7 +403,7 @@ register struct attack *mattk;
 		if(!rn2(BOLT_LIM-movedist(mtmp->mx,mtmp->mux,mtmp->my,mtmp->muy))) {
 		    if (canseemon(mtmp))
 			pline("%s spits venom!", Monnam(mtmp));
-		    m_throw(mtmp->mx, mtmp->my, sgn(tbx), sgn(tby), 
+		    m_throw(mtmp, mtmp->mx, mtmp->my, sgn(tbx), sgn(tby), 
 			movedist(mtmp->mx,mtmp->mux,mtmp->my,mtmp->muy), otmp);
 		    nomul(0);
 		    return 0;
@@ -476,7 +501,7 @@ int type;
 #endif /* OVL0 */
 #ifdef OVL1
 
-XSTATIC int
+STATIC_OVL int
 movedist(x0, x1, y0, y1)
 int x0, x1, y0, y1;
 {

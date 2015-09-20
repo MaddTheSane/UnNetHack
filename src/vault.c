@@ -5,26 +5,38 @@
 #include "hack.h"
 #include "vault.h"
 
-static void FDECL(restfakecorr,(struct monst *));
-OSTATIC boolean FDECL(in_vault,(int,int));
-OSTATIC struct monst *NDECL(findgd);
-static boolean FDECL(in_fcorridor, (struct monst *,int,int));
+STATIC_DCL boolean FDECL(in_vault,(int,int));
+STATIC_DCL struct monst *NDECL(findgd);
 
 #ifdef OVLB
 
-static void
-restfakecorr(grd) 
+static boolean FDECL(clear_fcorr, (struct monst *,BOOLEAN_P));
+static void FDECL(restfakecorr,(struct monst *));
+static boolean FDECL(in_fcorridor, (struct monst *,int,int));
+
+static boolean
+clear_fcorr(grd, forceshow)
 register struct monst *grd;
+register boolean forceshow;
 {
 	register int fcx, fcy, fcbeg;
 	register struct rm *crm;
+	register struct monst *mtmp = (struct monst *)0;
 
 	while((fcbeg = EGD(grd)->fcbeg) < EGD(grd)->fcend) {
 		fcx = EGD(grd)->fakecorr[fcbeg].fx;
 		fcy = EGD(grd)->fakecorr[fcbeg].fy;
-		if((u.ux == fcx && u.uy == fcy) || cansee(fcx,fcy) ||
-		   m_at(fcx,fcy))
-			return;
+		if(!in_fcorridor(grd, u.ux, u.uy) && EGD(grd)->gddone)
+			forceshow = TRUE;
+		if((u.ux == fcx && u.uy == fcy) || 
+		   (!forceshow && cansee(fcx,fcy))) return(FALSE);
+		if(mtmp = m_at(fcx,fcy)) {
+			if(mtmp->isgd) return(FALSE);
+			else if(!in_fcorridor(grd, u.ux, u.uy)) {
+			    rloc(mtmp);
+			    if(mtmp->mpeaceful) You("hear a muffled yelp.");
+			}
+		}
 		crm = &levl[fcx][fcy];
 		crm->typ = EGD(grd)->fakecorr[fcbeg].ftyp;
 		if(!crm->typ) crm->seen = 0;
@@ -32,8 +44,31 @@ register struct monst *grd;
 		if(cansee(fcx,fcy)) prl(fcx,fcy);
 		EGD(grd)->fcbeg++;
 	}
+	return(TRUE);
+}
+
+static void
+restfakecorr(grd) 
+register struct monst *grd;
+{
 	/* it seems he left the corridor - let the guard disappear */
-	mongone(grd);
+	if(clear_fcorr(grd, FALSE)) mongone(grd);
+}
+
+boolean
+grddead(grd)				/* called in mon.c */
+register struct monst *grd;
+{
+	register boolean dispose = clear_fcorr(grd, TRUE);
+
+	if(!dispose) {
+		remove_monster(grd->mx, grd->my);
+		place_monster(grd, 0, 0);
+		EGD(grd)->ogx = grd->mx;
+		EGD(grd)->ogy = grd->my;
+		dispose = clear_fcorr(grd, TRUE);
+	}
+	return(dispose);
 }
 
 static boolean
@@ -50,7 +85,7 @@ int x, y;
 	return(FALSE);
 }
 
-XSTATIC 
+STATIC_OVL
 struct monst *
 findgd() {
 
@@ -65,7 +100,7 @@ findgd() {
 #endif /* OVLB */
 #ifdef OVL0
 
-XSTATIC
+STATIC_OVL
 boolean
 in_vault(x, y)
 int x, y;
@@ -133,6 +168,7 @@ fnd:
 	EGD(guard)->ogx = x;
 	EGD(guard)->ogy = y;
 	EGD(guard)->gdlevel = dlevel;
+	EGD(guard)->vroom = inroom(x, y);
 	EGD(guard)->warncnt = 0;
 
 	if(!cansee(guard->mx, guard->my)) {
@@ -197,12 +233,18 @@ register struct monst *grd;
 	m = n = 0;
 #endif
 	if(EGD(grd)->gdlevel != dlevel) return(-1);
-	if(!grd->mpeaceful && in_vault(grd->mx, grd->my) &&
-			!in_vault(u.ux, u.uy)) {
+	if(!grd->mpeaceful) {
+	    if((in_vault(grd->mx, grd->my) && !in_vault(u.ux, u.uy)) ||
+	       (in_fcorridor(grd, grd->mx, grd->my) && !in_vault(u.ux, u.uy) &&
+			!in_fcorridor(grd, u.ux, u.uy))) {
 		rloc(grd);
+		(void) clear_fcorr(grd, TRUE);
 		goto letknow;
+	    }
+	    if(!in_fcorridor(grd, grd->mx, grd->my))
+		(void) clear_fcorr(grd, TRUE);
+	    return(-1);
 	}
-	if(!grd->mpeaceful) return(-1);
 	if(abs(EGD(grd)->ogx - grd->mx) > 1 || 
 			abs(EGD(grd)->ogy - grd->my) > 1)
 		return(-1);	/* teleported guard - treat as monster */
@@ -212,8 +254,9 @@ register struct monst *grd;
 		if(EGD(grd)->warncnt == 3)
 			pline("\"Again, %sfollow me!\"", 
 				u.ugold ? "drop that gold and " : "");
-		if(EGD(grd)->warncnt == 6) {
-			register int m = grd->mx, n = grd->my;
+		if(EGD(grd)->warncnt == 7) {
+			m = grd->mx;
+			n = grd->my;
 			verbalize("You've been warned, knave!");
 			mnexto(grd);
 			levl[m][n].typ = EGD(grd)->fakecorr[0].ftyp;
@@ -227,7 +270,8 @@ register struct monst *grd;
 		return(0);
 	    }
 	    if(!in_vault(u.ux,u.uy) && u.ugold) { /* player teleported */
-		register int m = grd->mx, n = grd->my;
+		m = grd->mx;
+		n = grd->my;
 		rloc(grd);
 		levl[m][n].typ = EGD(grd)->fakecorr[0].ftyp;
 		newsym(m,n);
@@ -244,8 +288,20 @@ letknow:
 		return(-1);
 	    }
 	}
-	if(u.ugold && (in_fcorridor(grd, u.ux, u.uy) || /*cover 'blind' spot*/
+	if(EGD(grd)->fcend > 1) {
+	    if(EGD(grd)->fcend > 2 && in_fcorridor(grd, grd->mx, grd->my) &&
+		  !EGD(grd)->gddone && !in_fcorridor(grd, u.ux, u.uy) &&
+		  levl[EGD(grd)->fakecorr[0].fx][EGD(grd)->fakecorr[0].fy].typ
+				 == EGD(grd)->fakecorr[0].ftyp) {
+		pline("The guard, confused, disappears.");
+		goto cleanup;
+	    }
+	    if(u.ugold && (in_fcorridor(grd, u.ux, u.uy) || /*cover 'blind' spot*/
 		    (EGD(grd)->fcend > 1 && in_vault(u.ux, u.uy)))) {
+		if(!grd->mx) {
+			restfakecorr(grd);
+			return(-2);
+		}
 		if(EGD(grd)->warncnt < 6) {
 			EGD(grd)->warncnt = 6;
 			verbalize("Drop all your gold, scoundrel!");
@@ -255,7 +311,8 @@ letknow:
 			grd->mpeaceful = 0;
 			return(-1);
 		}	
-	} 
+	    } 
+	}
 	for(fci = EGD(grd)->fcbeg; fci < EGD(grd)->fcend; fci++)
 	    if(g_at(EGD(grd)->fakecorr[fci].fx, EGD(grd)->fakecorr[fci].fy)){
 		m = EGD(grd)->fakecorr[fci].fx;
@@ -281,7 +338,7 @@ letknow:
 		    pmon(grd);
 		    mpickgold(grd);
 		}
-		pline("The %s%s picks the gold.", lmonnam(grd)+4,
+		pline("The %s%s picks up the gold.", lmonnam(grd)+4,
 				grd->mpeaceful ? " calms down and" : "");
 		if(x != grd->mx || y != grd->my) {
 		    remove_monster(grd->mx, grd->my);
@@ -385,13 +442,16 @@ newpos:
 		/* to avoid a check at the top of this function.  */
 		/* At the end of the process, the guard is killed */
 		/* in restfakecorr().				  */
+cleanup:
 		remove_monster(grd->mx, grd->my);
 		place_monster(grd, 0, 0);
 		EGD(grd)->ogx = grd->mx;
 		EGD(grd)->ogy = grd->my;
 		restfakecorr(grd);
-		if(in_fcorridor(grd, u.ux, u.uy) || cansee(grd->mx, grd->my))
+		if(in_fcorridor(grd, u.ux, u.uy) || cansee(grd->mx, grd->my)) {
 		    pline("Suddenly, the guard disappears.");
+		    return(1);
+		}
 		return(-2);
 	}
 	EGD(grd)->ogx = grd->mx;	/* update old positions */
@@ -407,13 +467,11 @@ newpos:
 void
 paygd() {
 
-	struct monst *guard;
-	register int i;
+	register struct monst *grd = findgd();
 	int gx,gy;
 	char buf[BUFSZ];
 
-	guard = findgd();
-	if (!u.ugold || !guard) return;
+	if (!u.ugold || !grd) return;
 
 	if (u.uinvault) {
 	    Your("%ld zorkmid%s goes into the Magic Memory Vault.",
@@ -421,21 +479,15 @@ paygd() {
 	    mkgold(u.ugold, u.ux, u.uy);
 	    u.ugold = 0L;
 	} else {
-	    if(guard->mpeaceful) { /* he has no "right" to your gold */
-		mongone(guard);
+	    if(grd->mpeaceful) { /* he has no "right" to your gold */
+		mongone(grd);
 		return;
 	    }
-	    mnexto(guard);
-	    pmon(guard);
-	    pline("%s remits your gold to the vault.", Monnam(guard));
-	    for(i=0; i<=nroom; i++)
-		if (rooms[i].rtype==VAULT) break;
-	    if (i > nroom) {
-		impossible("no vault?");
-		return;
-	    }
-	    gx = rooms[i].lx + rn2(2);
-	    gy = rooms[i].ly + rn2(2);
+	    mnexto(grd);
+	    pmon(grd);
+	    pline("%s remits your gold to the vault.", Monnam(grd));
+	    gx = rooms[EGD(grd)->vroom].lx + rn2(2);
+	    gy = rooms[EGD(grd)->vroom].ly + rn2(2);
 	    mkgold(u.ugold, gx, gy);
 	    u.ugold = 0L;
 	    Sprintf(buf,
@@ -443,14 +495,16 @@ paygd() {
 		player_mon()->mname, plname);
 	    make_engr_at(gx, gy, buf);
 	}
-	mongone(guard);
+	mongone(grd);
 }
 
+#ifdef SOUNDS
 boolean
 gd_sound() {  /* prevent "You hear footsteps.." when inappropriate */
 	register struct monst *grd = findgd();
 
 	return(grd == (struct monst *)0);
 }
+#endif
 
 #endif /* OVLB */

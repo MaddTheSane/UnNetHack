@@ -6,19 +6,19 @@
 
 #ifdef OVLB
 
-static int todelay;
+static int NEARDATA todelay;
 
 #endif /*OVLB */
 
 #ifndef OVLB
 
-OSTATIC long takeoff_mask, taking_off;
+STATIC_DCL long takeoff_mask, taking_off;
 
 #else /* OVLB */
 
-XSTATIC long takeoff_mask = 0L, taking_off = 0L;
+STATIC_OVL long NEARDATA takeoff_mask = 0L, NEARDATA taking_off = 0L;
 
-static const long takeoff_order[] = { WORN_BLINDF, 1L, /* weapon */
+static const long NEARDATA takeoff_order[] = { WORN_BLINDF, 1L, /* weapon */
 	WORN_SHIELD, WORN_GLOVES, LEFT_RING, RIGHT_RING, WORN_CLOAK,
 	WORN_HELMET, WORN_AMUL, WORN_ARMOR,
 #ifdef SHIRT
@@ -27,24 +27,16 @@ static const long takeoff_order[] = { WORN_BLINDF, 1L, /* weapon */
 	WORN_BOOTS, 0L };
 
 static void FDECL(on_msg, (struct obj *));
-#ifndef OVERLAY
-static int NDECL(Armor_on);
-static int NDECL(Boots_on);
-#endif
+STATIC_PTR int NDECL(Armor_on);
+STATIC_PTR int NDECL(Boots_on);
 static int NDECL(Cloak_on);
-#ifndef OVERLAY
-static int NDECL(Helmet_on);
-static int NDECL(Gloves_on);
-#endif
+STATIC_PTR int NDECL(Helmet_on);
+STATIC_PTR int NDECL(Gloves_on);
 static void NDECL(Amulet_on);
 static void FDECL(Ring_off_or_gone, (struct obj *, BOOLEAN_P));
-#ifndef OVERLAY
-static int FDECL(select_off, (struct obj *));
-#endif
+STATIC_PTR int FDECL(select_off, (struct obj *));
 static struct obj *NDECL(do_takeoff);
-#ifndef OVERLAY
-static int NDECL(take_off);
-#endif
+STATIC_PTR int NDECL(take_off);
 
 void
 off_msg(otmp) register struct obj *otmp; {
@@ -58,6 +50,9 @@ on_msg(otmp) register struct obj *otmp; {
 	if(flags.verbose)
 	    You("are now wearing %s.", an(xname(otmp)));
 }
+
+#endif /* OVLB */
+#ifdef OVL2
 
 boolean
 is_boots(otmp) register struct obj *otmp; {
@@ -76,11 +71,17 @@ is_helmet(otmp) register struct obj *otmp; {
 #endif
 }
 
+#endif /* OVLB */
+#ifdef OVL2
+
 boolean
 is_gloves(otmp) register struct obj *otmp; {
 	return(otmp->otyp >= LEATHER_GLOVES &&
 	   	otmp->otyp <= GAUNTLETS_OF_DEXTERITY);
 }
+
+#endif /* OVL2 */
+#ifdef OVLB
 
 boolean
 is_cloak(otmp) register struct obj *otmp; {
@@ -99,13 +100,10 @@ is_shield(otmp) register struct obj *otmp; {
  * The Type_off() functions call setworn() themselves.
  */
 
-#ifndef OVERLAY
-static 
-#endif
+STATIC_PTR
 int
 Boots_on() {
-    long oldprop =
-		u.uprops[objects[uarmf->otyp].oc_oprop].p_flgs & ~(WORN_BOOTS | TIMEOUT);
+    long oldprop = u.uprops[objects[uarmf->otyp].oc_oprop].p_flgs & ~WORN_BOOTS;
 
     switch(uarmf->otyp) {
 	case LOW_BOOTS:
@@ -115,9 +113,12 @@ Boots_on() {
 	case JUMPING_BOOTS:
 		break;
 	case SPEED_BOOTS:
-		if (!oldprop) {
+		/* Speed boots are still better than intrinsic speed, */
+		/* though not better than potion speed */
+		if (!(oldprop & TIMEOUT)) {
 			makeknown(uarmf->otyp);
-			You("feel yourself speed up.");
+			You("feel yourself speed up%s.",
+				oldprop ? " a bit more" : "");
 		}
 		break;
 	case ELVEN_BOOTS:
@@ -127,7 +128,7 @@ Boots_on() {
 		}
 		break;
 	case FUMBLE_BOOTS:
-		if (!oldprop)
+		if (!(oldprop & ~TIMEOUT))
 			Fumbling += rnd(20);
 		break;
 	case LEVITATION_BOOTS:
@@ -147,15 +148,15 @@ Boots_off() {
 	/* For levitation, float_down() returns if Levitation, so we
 	 * must do a setworn() _before_ the levitation case.
 	 */
-    long oldprop =
-		u.uprops[objects[uarmf->otyp].oc_oprop].p_flgs & ~(WORN_BOOTS | TIMEOUT);
+    long oldprop = u.uprops[objects[uarmf->otyp].oc_oprop].p_flgs & ~WORN_BOOTS;
 
     setworn((struct obj *)0, W_ARMF);
     switch(obj->otyp) {
 	case SPEED_BOOTS:
-		if (!oldprop) {
+		if (!(oldprop & TIMEOUT)) {
 			makeknown(obj->otyp);
-			You("feel yourself slow down.");
+			You("feel yourself slow down%s.",
+				oldprop ? " a bit" : "");
 		}
 		break;
 	case WATER_WALKING_BOOTS:
@@ -176,7 +177,7 @@ Boots_off() {
 		}
 		break;
 	case FUMBLE_BOOTS:
-		if (!oldprop)
+		if (!(oldprop & ~TIMEOUT))
 			Fumbling = 0;
 		break;
 	case LEVITATION_BOOTS:
@@ -250,9 +251,7 @@ Cloak_off() {
     return 0;
 }
 
-#ifndef OVERLAY
-static 
-#endif
+STATIC_PTR
 int
 Helmet_on() {
     switch(uarmh->otyp) {
@@ -321,9 +320,7 @@ Helmet_off() {
     return 0;
 }
 
-#ifndef OVERLAY
-static 
-#endif
+STATIC_PTR
 int
 Gloves_on() {
     long oldprop =
@@ -431,9 +428,7 @@ Shield_off() {
  * is fire resistance, and we have to immediately set HFire_resistance in worn.c
  * since worn.c will check it before returning.
  */
-#ifndef OVERLAY
-static 
-#endif
+STATIC_PTR
 int
 Armor_on()
 {
@@ -508,8 +503,14 @@ newname:	more();
 		}
 		(void)strcat(SAVEF, ".sav");
 # else
+#  ifdef MACOS
+		strncpy(SAVEF, plname, (FILENAME - 2));  /* .e */
+		SAVEF[(FILENAME - 2)] = '\0';
+		regularize(SAVEF);
+#  else
 		Sprintf(SAVEF, "save/%d%s", getuid(), plname);
 		regularize(SAVEF+5);		/* avoid . or / in name */
+#  endif
 # endif
 #endif
 #ifdef WIZARD
@@ -772,8 +773,8 @@ cancel_don()
 	multi = 0;
 }
 
-static const char clothes[] = {ARMOR_SYM, 0};
-static const char accessories[] = {RING_SYM, AMULET_SYM, TOOL_SYM, 0};
+static const char NEARDATA clothes[] = {ARMOR_SYM, 0};
+static const char NEARDATA accessories[] = {RING_SYM, AMULET_SYM, TOOL_SYM, 0};
 
 int
 dotakeoff() {
@@ -821,7 +822,7 @@ dotakeoff() {
 		You("can't take that off.");
 		return(0);
 	}
-	if(otmp == uarmg && uwep && uwep->cursed) {	/* myers@uwmacc */
+	if(otmp == uarmg && welded(uwep)) {
     You("seem unable to take off the gloves while holding your %s.",
 	  is_sword(uwep) ? "sword" : "weapon");
 		uwep->bknown = 1;
@@ -1327,9 +1328,7 @@ register struct obj *otmph = some_armor();
 	}
 }
 
-#ifndef OVERLAY
-static 
-#endif
+STATIC_PTR
 int
 select_off(otmp)
 register struct obj *otmp;
@@ -1435,9 +1434,7 @@ do_takeoff() {
 	return(otmp);
 }
 
-#ifndef OVERLAY
-static 
-#endif
+STATIC_PTR
 int
 take_off() {
 

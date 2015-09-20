@@ -10,10 +10,10 @@
 # include <ctype.h>
 #endif
 
+#ifdef OVLB
+
 static char *FDECL(visctrl, (CHAR_P));
 static void FDECL(do_oname, (struct obj *));
-
-#ifdef OVLB
 
 static
 char *
@@ -160,6 +160,10 @@ do_mname(){
 	register char *curr;
 	boolean blank;
 
+	if (Hallucination) {
+		You("would never recognize it anyway.");
+		return 0;
+	}
 	cc.x = u.ux;
 	cc.y = u.uy;
 	getpos(&cc, 0, "the monster you want to name");
@@ -230,11 +234,14 @@ register struct obj *obj;
 		pline("The artifact seems to resist the attempt.");
 	else if (restr_name(obj, buf) || exist_artifact(obj, buf)) {
 		int n = rn2(strlen(buf));
-		char c;
+		char c1,c2;
 
-		while (tolower(buf[n]) == (c = 'a' + rn2('z'-'a')));
-		if (isupper(buf[n])) buf[n] = toupper(c);
-		else buf[n] = c;
+		c1 = isupper(buf[n]) ? tolower(buf[n]) : buf[n];
+		while (c1 == (c2 = 'a' + rn2('z'-'a')));
+		if (isupper(buf[n]))
+			/* islower(c2) guaranteed by generation */
+			buf[n] = toupper(c2);
+		else buf[n] = c2;
 		pline("While engraving your hand slips.");
 		more();
 		You("engrave: \"%s\".",buf);
@@ -255,16 +262,22 @@ register int ininv;
 	register int	lth;
 
 	lth = *buf ? strlen(buf)+1 : 0;
-#ifdef NAMED_ITEMS
-	/* if named artifact exists in the game, do not create another */
-	if (exist_artifact(obj, buf))
-		lth = 0;
-	else
-		artifact_exists(obj, buf, TRUE);
-#endif
 	if(lth > 63){
 		lth = 63;
 	}
+	/* if already properly named */
+	if(lth == obj->onamelth && (!lth || !strcmp(ONAME(obj),buf)))
+		return obj;
+#ifdef NAMED_ITEMS
+	/* If named artifact exists in the game, do not create another.
+	 * Also trying to create an artifact shouldn't de-artifact
+	 * it (e.g. Excalibur from prayer). In this case the object
+	 * will retain its current name. */
+	if (is_artifact(obj) || exist_artifact(obj, buf))
+		return obj;
+	else
+		artifact_exists(obj, buf, TRUE);
+#endif
 	otmp2 = newobj(lth);
 	*otmp2 = *obj;
 	otmp2->onamelth = lth;
@@ -310,7 +323,7 @@ register int ininv;
 	return otmp2;
 }
 
-static const char callable[] = {
+static const char NEARDATA callable[] = {
 	SCROLL_SYM, POTION_SYM, WAND_SYM, RING_SYM, AMULET_SYM, GEM_SYM,
 #ifdef SPELLS
 	SPBOOK_SYM,
@@ -430,7 +443,7 @@ int vb;
 		 * or 'Asidonhopo the blue dragon'.
 		 */
 		Strcat(buf, " ");
-	} else if(mtmp->mnamelth && !vb) {
+	} else if(mtmp->mnamelth && !vb && !Hallucination) {
 		if(isinvis) {
 		    Strcpy(buf, "the invisible ");
 		    Strcat(buf, NAME(mtmp));
@@ -446,7 +459,12 @@ int vb;
 		    gn = ghostnames[rn2(SIZE(ghostnames))];
 		    Strcpy((char *) mtmp->mextra, !rn2(5) ? (const char *)plname : gn);
 		  }
-		  Sprintf(buf, "%s's ghost", (char *) mtmp->mextra);
+		  if (Hallucination) {
+		    Strcat(buf, "the ");
+		    Strcat(buf, rndmonnam());
+		  }
+		  else
+		    Sprintf(buf, "%s's ghost", (char *) mtmp->mextra);
 		}
 		break;
 	    default:
@@ -457,7 +475,7 @@ int vb;
 			Strcat(buf, "the ");
 		Strcat(buf, Hallucination ? rndmonnam() : mtmp->data->mname);
 	}
-	if(vb && mtmp->mnamelth) {
+	if(vb && mtmp->mnamelth && !Hallucination) {
 		Strcat(buf, " called ");
 		Strcat(buf, NAME(mtmp));
 	}
@@ -594,7 +612,7 @@ self_pronoun(str, pronoun)
 const char *str;
 const char *pronoun;
 {
-	static char buf[BUFSZ];
+	static char NEARDATA buf[BUFSZ];
 	register int i;
 
 	for(i=0; pronoun_pairs[i][0]; i++) {

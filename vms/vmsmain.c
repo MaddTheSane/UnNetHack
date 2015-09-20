@@ -14,8 +14,12 @@ char obuf[BUFSIZ];	/* BUFSIZ is defined in stdio.h */
 int hackpid = 0;				/* current pid */
 int locknum = 0;				/* max num of players */
 
-static void whoami();
-static void byebye();
+static void NDECL(whoami);
+static void NDECL(byebye);
+#ifndef SAVE_ON_FATAL_ERROR
+static long FDECL(vms_handler,(long [],long []));
+#include <ssdef.h>      /* system service status codes */
+#endif
 
 int
 main(argc,argv)
@@ -59,7 +63,10 @@ char *argv[];
 #endif
 	if(argc > 1) {
 #ifdef CHDIR
-	    if (!strncmp(argv[1], "-d", 2)) {
+	    if (!strncmp(argv[1], "-d", 2) && argv[1][2] != 'e') {
+		/* avoid matching "-dec" for DECgraphics; since the man page
+		 * says -d directory, hope nobody's using -desomething_else
+		 */
 		argc--;
 		argv++;
 		dir = argv[0]+2;
@@ -83,7 +90,7 @@ char *argv[];
 		chdirx(dir,0);
 #endif
 		prscore(argc, argv);
-		if(isatty(1)) getret();
+		if(isatty(1) > 0) getret();
 		settty(NULL);
 		exit(0);
 	    }
@@ -96,6 +103,10 @@ char *argv[];
 	cls();
 	u.uhp = 1;	/* prevent RIP on early quits */
 	u.ux = FAR;	/* prevent nscr() */
+#ifndef SAVE_ON_FATAL_ERROR
+	/* used to clear hangup stuff while still giving standard traceback */
+	VAXC$ESTABLISH(vms_handler);
+#endif
 	(void) signal(SIGHUP, (SIG_RET_TYPE) hangup);
 
 	/*
@@ -125,7 +136,7 @@ char *argv[];
 # endif
 		case 'D':
 # ifdef WIZARD
-			if(!strcmp(getenv("USER"), WIZARD)) {
+			if(!strcmp(getenv("USER"), WIZARD_NAME)) {
 				wizard = TRUE;
 				break;
 			}
@@ -152,6 +163,12 @@ char *argv[];
 			  (void) strncpy(plname, argv[0], sizeof(plname)-1);
 			} else
 				Printf("Player name expected after -u\n");
+			break;
+		case 'i':
+			if(!strcmp(argv[0]+1, "ibm")) assign_ibm_graphics();
+			break;
+		case 'd':
+			if(!strcmp(argv[0]+1, "dec")) assign_dec_graphics();
 			break;
 		default:
 			/* allow -T for Tourist, etc. */
@@ -266,7 +283,7 @@ not_recovered:
 	flags.moonphase = phase_of_the_moon();
 	if(flags.moonphase == FULL_MOON) {
 		You("are lucky!  Full moon tonight.");
-		if(!u.uluck) change_luck(1);
+		change_luck(1);
 	} else if(flags.moonphase == NEW_MOON) {
 		pline("Be careful!  New moon tonight.");
 	}
@@ -318,9 +335,11 @@ chdirx(dir, wr)
 char *dir;
 boolean wr;
 {
+# ifndef HACKDIR
+	static char *defdir = ".";
+# else
 	static char *defdir = HACKDIR;
 
-# ifdef HACKDIR
 	if(dir == NULL)
 		dir = defdir;
 	else if (wr)
@@ -376,12 +395,43 @@ static void
 byebye()
 {
     int (*hup)();
+#ifdef SHELL
     extern unsigned int dosh_pid;
+
+    if (dosh_pid)
+	SYS$DELPRC(&dosh_pid, 0);
+#endif SHELL
 
     /* SIGHUP doesn't seem to do anything on VMS, so we fudge it here... */
     hup = signal(SIGHUP, SIG_IGN);
     if (hup != SIG_DFL && hup != SIG_IGN)
 	(*hup)();
-    if (dosh_pid)
-	SYS$DELPRC(&dosh_pid, 0);
+
+#ifdef CHDIR
+    (void) chdir(getenv("PATH"));
+#endif
 }
+
+#ifndef SAVE_ON_FATAL_ERROR
+/* Condition handler to prevent byebye's hangup simulation
+   from saving the game after a fatal error has occurred.  */
+static long
+vms_handler(sigargs, mechargs)
+long sigargs[], mechargs[];     /* [0] is argc, [1..argc] are the real args */
+{
+    extern boolean hu;          /* src/save.c */
+    long condition = sigargs[1];
+
+    if (condition == SS$_ACCVIO         /* access violation */
+     || condition >= SS$_ASTFLT && condition <= SS$_TBIT
+     || condition >= SS$_ARTRES && condition <= SS$_INHCHME) {
+# ifdef WIZARD
+	if (wizard)
+	    abort();    /* enter the debugger */
+	else
+# endif
+	    hu = TRUE;  /* pretend that hangup has already been attempted */
+    }
+    return SS$_RESIGNAL;
+}
+#endif

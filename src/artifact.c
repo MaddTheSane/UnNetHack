@@ -10,12 +10,12 @@
 
 #ifndef OVLB
 
-OSTATIC const struct artifact artilist[];
+STATIC_DCL const struct artifact artilist[];
 
 #else /* OVLB */
 
 /* the artifacts (currently weapons only) */
-XSTATIC const struct artifact artilist[] = {
+STATIC_OVL const struct artifact NEARDATA artilist[] = {
 
 #define	    NO_ATTK	{ 0, 0, 0, 0 }
 
@@ -110,8 +110,8 @@ boolean artiexist[SIZE(artilist)];
 
 #endif /* OVLB */
 
-OSTATIC const struct artifact *FDECL(get_artifact, (struct obj *));
-OSTATIC int FDECL(spec_applies, (const struct artifact *, struct permonst *));
+STATIC_DCL const struct artifact *FDECL(get_artifact, (struct obj *));
+STATIC_DCL int FDECL(spec_applies, (const struct artifact *, struct permonst *));
 
 #ifdef OVLB
 
@@ -158,13 +158,13 @@ struct obj **otmp1;
 #endif /* OVLB */
 #ifdef OVL0
 
-XSTATIC const struct artifact *
+STATIC_OVL const struct artifact *
 get_artifact(otmp)
 struct obj *otmp;
 {
 	register const struct artifact *artif;
 
-	if(otmp)
+	if(otmp && otmp->onamelth)
 	    if(strlen(ONAME(otmp)))
 		for(artif = artilist; artif->otyp; artif++)
 		    if(artif->otyp == otmp->otyp &&
@@ -174,7 +174,7 @@ struct obj *otmp;
 }
 
 #endif /* OVL0 */
-#ifdef OVLB
+#ifdef OVL2
 
 boolean
 is_artifact(otmp)
@@ -183,6 +183,8 @@ struct obj *otmp;
 	return(get_artifact(otmp) != (struct artifact *)0);
 }
 
+#endif /* OVL2 */
+#ifdef OVLB
 boolean
 exist_artifact(otmp, name)
 register struct obj *otmp;
@@ -298,13 +300,16 @@ register struct obj *otmp;
 	return(0);
 }
 
-XSTATIC int
+#endif /* OVLB */
+#ifdef OVL1
+
+STATIC_OVL int
 spec_applies(weap, ptr)
 register const struct artifact *weap;
 struct permonst *ptr;
 {
 	if(!(weap->spfx & (SPFX_DBONUS | SPFX_ATTK)))
-	    return(0);
+	    return(weap->attk.adtyp == AD_PHYS);
 
 	if(weap->spfx & SPFX_DMONS)
 	    return((ptr == &mons[(int)weap->mtype]));
@@ -327,9 +332,6 @@ struct permonst *ptr;
 	}
 	return(0);
 }
-
-#endif /* OVLB */
-#ifdef OVL1
 
 int
 spec_abon(otmp, ptr)
