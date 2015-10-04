@@ -2408,7 +2408,7 @@ copy_bytes(ifd, ofd)
 int ifd, ofd;
 {
 	char buf[BUFSIZ];
-	int nfrom, nto;
+	ssize_t nfrom, nto;
 
 	do {
 		nfrom = read(ifd, buf, BUFSIZ);

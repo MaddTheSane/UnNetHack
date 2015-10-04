@@ -1068,12 +1068,12 @@ void
 mread(fd, buf, len)
 register int fd;
 register genericptr_t buf;
-register unsigned int len;
+register size_t len;
 {
-	register int rlen;
+	register ssize_t rlen;
 
 #if defined(BSD) || defined(ULTRIX)
-	rlen = read(fd, buf, (int) len);
+	rlen = read(fd, buf, len);
 	if(rlen != len){
 #else /* e.g. SYSV, __TURBOC__ */
 	rlen = read(fd, buf, (unsigned) len);

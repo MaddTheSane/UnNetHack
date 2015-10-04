@@ -733,7 +733,7 @@ E int FDECL(distmin, (int,int,int,int));
 E boolean FDECL(online2, (int,int,int,int));
 E boolean FDECL(pmatch, (const char *,const char *));
 #ifndef STRNCMPI
-E int FDECL(strncmpi, (const char *,const char *,int));
+E int FDECL(strncmpi, (const char *,const char *,ssize_t));
 #endif
 #ifndef STRSTRI
 E char *FDECL(strstri, (const char *,const char *));
@@ -1689,7 +1689,7 @@ E boolean FDECL(lookup_id_mapping, (unsigned, unsigned *));
 #ifdef ZEROCOMP
 E int FDECL(mread, (int,genericptr_t,unsigned int));
 #else
-E void FDECL(mread, (int,genericptr_t,unsigned int));
+E void FDECL(mread, (int,genericptr_t,size_t));
 #endif
 
 /* ### rip.c ### */
@@ -1764,7 +1764,7 @@ E void FDECL(savelev, (int,XCHAR_P,int));
 E void FDECL(bufon, (int));
 E void FDECL(bufoff, (int));
 E void FDECL(bflush, (int));
-E void FDECL(bwrite, (int,genericptr_t,unsigned int));
+E void FDECL(bwrite, (int,genericptr_t,size_t));
 E void FDECL(bclose, (int));
 E void FDECL(savefruitchn, (int,int));
 E void NDECL(free_dungeons);

@@ -647,7 +647,7 @@ void
 bwrite(fd, loc, num)
 int fd;
 genericptr_t loc;
-register unsigned num;
+register size_t num;
 {
     register unsigned char *bp = (unsigned char *)loc;
 
@@ -735,7 +735,7 @@ void
 bwrite(fd,loc,num)
 register int fd;
 register genericptr_t loc;
-register unsigned num;
+register size_t num;
 {
 	boolean failed;
 
@@ -767,7 +767,7 @@ register unsigned num;
 		terminate(EXIT_FAILURE);
 	    else
 #endif
-		panic("cannot write %u bytes to file #%d", num, fd);
+		panic("cannot write %lu bytes to file #%d", (unsigned long)num, fd);
 	}
 }
 

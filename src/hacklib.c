@@ -284,7 +284,7 @@ rounddiv(x, y)		/* calculate x/y, rounding as appropriate */
     if (x < 0) {
 	divsgn = -divsgn;  x = -x;
     }
-    r = x / y;
+    r = (int)(x / y);
     m = x % y;
     if (2*m >= y) r++;
 
@@ -356,7 +356,7 @@ pmatch_top:
 int
 strncmpi(s1, s2, n)	/* case insensitive counted string comparison */
     register const char *s1, *s2;
-    register int n; /*(should probably be size_t, which is usually unsigned)*/
+    register ssize_t n; /*(should probably be size_t, which is usually unsigned)*/
 {					/*{ aka strncasecmp }*/
     register char t1, t2;
 

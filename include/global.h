@@ -281,7 +281,7 @@ typedef xchar	boolean;		/* 0 or 1 */
 
 /* primitive memory leak debugging; see alloc.c */
 #ifdef MONITOR_HEAP
-extern long *FDECL(nhalloc, (unsigned int,const char *,int));
+extern long *FDECL(nhalloc, (size_t,const char *,int));
 extern void FDECL(nhfree, (genericptr_t,const char *,int));
 # ifndef __FILE__
 #  define __FILE__ ""
@@ -292,7 +292,7 @@ extern void FDECL(nhfree, (genericptr_t,const char *,int));
 # define alloc(a) nhalloc(a,__FILE__,(int)__LINE__)
 # define free(a) nhfree(a,__FILE__,(int)__LINE__)
 #else	/* !MONITOR_HEAP */
-extern long *FDECL(alloc, (unsigned int));		/* alloc.c */
+extern long *FDECL(alloc, (size_t));		/* alloc.c */
 #endif
 
 /* Used for consistency checks of various data files; declare it here so

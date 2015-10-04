@@ -56,11 +56,11 @@ genericptr_t	ptr;
 int	size, nitems;
 dlb	*stream;
 {
-	int cnt;
+	size_t cnt;
 
 	if ((cnt = dlb_fread(ptr, size, nitems, stream)) != nitems) {
 
-	    panic("PREMATURE EOF ON QUEST TEXT FILE! Expected %d bytes, got %d",
+	    panic("PREMATURE EOF ON QUEST TEXT FILE! Expected %d bytes, got %ld",
 		    (size * nitems), (size * cnt));
 	}
 }

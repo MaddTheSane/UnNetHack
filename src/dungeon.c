@@ -187,7 +187,7 @@ Fread(ptr, size, nitems, stream)
 	int	size, nitems;
 	dlb	*stream;
 {
-	int cnt;
+	size_t cnt;
 
 	if((cnt = dlb_fread(ptr, size, nitems, stream)) != nitems) {
 	    panic(

@@ -24,13 +24,13 @@ static FILE *heaplog = 0;
 static boolean tried_heaplog = FALSE;
 #endif
 
-long *FDECL(alloc,(unsigned int));
+long *FDECL(alloc,(size_t));
 extern void VDECL(panic, (const char *,...)) PRINTF_F(1,2);
 
 
 long *
 alloc(lth)
-register unsigned int lth;
+register size_t lth;
 {
 #ifdef LINT
 /*
@@ -47,7 +47,7 @@ register unsigned int lth;
 
 	ptr = malloc(lth);
 #ifndef MONITOR_HEAP
-	if (!ptr) panic("Memory allocation failure; cannot get %u bytes", lth);
+	if (!ptr) panic("Memory allocation failure; cannot get %lu bytes", (unsigned long)lth);
 #endif
 	return((long *) ptr);
 #endif
@@ -103,7 +103,7 @@ heapmon_init()
 
 long *
 nhalloc(lth, file, line)
-unsigned int lth;
+size_t lth;
 const char *file;
 int line;
 {
