@@ -59,7 +59,8 @@ char **argv;
 {
 	char	infile[64], outfile[64], basename[64];
 	FILE	*fin, *fout;
-	int	i, len;
+	int	i;
+	size_t len;
 	boolean errors_encountered = FALSE;
 #if defined(MAC) && (defined(THINK_C) || defined(__MWERKS__))
 	char	*mark;

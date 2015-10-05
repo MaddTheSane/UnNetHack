@@ -72,7 +72,7 @@ extern YYSTYPE yylval;
 
 int line_number = 1, colon_line_number = 1;
 static char map[4096];
-static int map_cnt = 0;
+static long map_cnt = 0;
 
 %}
 %e 1500
@@ -89,7 +89,7 @@ static int map_cnt = 0;
 		  return MAP_ID;
 		}
 <MAPC>[-|}{+ABCISHKPLWTF\\#. 0123456789]*\r?\n	{
-		  int len = yyleng;
+		  size_t len = yyleng;
 		  /* convert \r\n to \n */
 		  if (len >= 2 && yytext[len - 2] == '\r') len -= 1;
 		  line_number++;
